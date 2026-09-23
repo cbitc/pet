@@ -120,8 +120,8 @@
 | 8 | 只有拖动中松手才算「落定」 | `pet.endDrag` |
 | 9 | 被摸之后不再算作正在挪窝 | `pet.tap` |
 | 10 | 不认识的情绪标签收拢为 neutral（不把未知值透传下去） | `emotion.toEmotion` |
-| 11 | 形象清单里的未知情绪、空绑定、坏值一律丢弃 | `appearance.defineAppearance` |
-| 12 | 偏好里的坏数据回退到默认值，绝不导致崩溃 | `pose.poseFrom` / `preferences.preferencesFrom` |
+| 11 | 形象清单里的未知情绪、空绑定、坏值一律丢弃 | `contracts/schemas.parseAppearanceSpec` |
+| 12 | 偏好里的坏数据回退到默认值，绝不导致崩溃 | `contracts/schemas.parsePose` / `preferencesFromConfig` |
 | 13 | 找不到偏好指定的形象时穿第一件可用的；一件都没有则降级并提示 | `pet-runtime.wearAppearance` |
 | 14 | 降级提示会反复提醒，直到换上像样的形象 | `pet-runtime.repeatNotice` |
 

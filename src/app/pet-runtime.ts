@@ -10,7 +10,9 @@
  * 换渲染引擎或换大脑后端，这个文件一行都不用改。
  */
 
+import { match } from 'ts-pattern'
 import { isSamePose, movePose } from '../domain/pose'
+import { rectContains } from '../domain/geometry'
 import { Pet } from '../domain/pet'
 import type { Preferences } from '../domain/preferences'
 import { toEmotion } from '../domain/emotion'
@@ -23,6 +25,7 @@ import type {
   PetStage,
   PointerTarget,
   PreferencesStore,
+  ReplyMessage,
   ReplySink,
   ScreenPoint,
   Unsubscribe
@@ -34,6 +37,9 @@ const PERSIST_DEBOUNCE_MS = 400
 const NOTICE_REPEAT_MS = 5000
 
 const WELCOME_TEXT = '嗨～我在这里！点我一下就能聊天，拖动可以帮我挪窝哦 (≧▽≦)'
+
+/** 命中宠物时向外扩容的像素（让「摸到边缘」也有反应） */
+const HIT_PADDING_PX = 12
 
 export type CancelTimer = () => void
 export type Schedule = (fn: () => void, delayMs: number) => CancelTimer
@@ -95,56 +101,47 @@ async function boot(deps: PetRuntimeDeps): Promise<() => void> {
     for (const event of events) apply(event)
   }
 
-  function apply(event: DomainEvent): void {
-    switch (event.type) {
-      case 'PetAppeared':
+  const apply = (event: DomainEvent): void =>
+    match(event)
+      .with({ type: 'PetAppeared' }, () => {
         placePet()
         greet()
-        break
-      case 'PetMoved':
-        placePet()
-        break
-      case 'PetSettled':
-        persistPoseSoon()
-        break
-      case 'PetTapped':
+      })
+      .with({ type: 'PetMoved' }, () => placePet())
+      .with({ type: 'PetSettled' }, () => persistPoseSoon())
+      .with({ type: 'PetTapped' }, () => {
         deps.stage.reactToTouch()
         deps.chat.openInput()
-        break
-      case 'OwnerSpoke':
-        deps.chat.showUtterance(event.text)
-        deps.brain.say(event.text)
-        break
-      case 'ReplyStarted':
+      })
+      .with({ type: 'OwnerSpoke' }, (e) => {
+        deps.chat.showUtterance(e.text)
+        deps.brain.say(e.text)
+      })
+      .with({ type: 'ReplyStarted' }, () => {
         reply = deps.chat.beginReply()
         deps.stage.setSpeaking(true)
-        break
-      case 'ReplyChunk':
-        reply?.append(event.chunk)
-        break
-      case 'ReplyCompleted':
+      })
+      .with({ type: 'ReplyChunk' }, (e) => reply?.append(e.chunk))
+      .with({ type: 'ReplyCompleted' }, () => {
         reply?.finish()
         reply = null
         deps.stage.setSpeaking(false)
-        break
-      case 'ReplyFailed':
-        reply?.fail(event.reason)
+      })
+      .with({ type: 'ReplyFailed' }, (e) => {
+        reply?.fail(e.reason)
         reply = null
         deps.stage.setSpeaking(false)
-        break
-      case 'MoodChanged':
-        deps.stage.express(event.mood, event.cue)
-        break
-      case 'Degraded':
-        degradedReason = event.reason
+      })
+      .with({ type: 'MoodChanged' }, (e) => deps.stage.express(e.mood, e.cue))
+      .with({ type: 'Degraded' }, (e) => {
+        degradedReason = e.reason
         // 已经在桌面上的话立刻提醒；还没现身则交给 greet 一起说
-        if (pet.hasAppeared) deps.chat.showNotice(event.reason)
-        break
-      case 'AppearanceChanged':
+        if (pet.hasAppeared) deps.chat.showNotice(e.reason)
+      })
+      .with({ type: 'AppearanceChanged' }, () => {
         // 形象只在舞台内部生效，这里无需额外动作
-        break
-    }
-  }
+      })
+      .exhaustive()
 
   function placePet(): void {
     deps.stage.place(pet.pose)
@@ -202,32 +199,25 @@ async function boot(deps: PetRuntimeDeps): Promise<() => void> {
   }
 
   function onGesture(gesture: DeskGesture): void {
-    switch (gesture.kind) {
-      case 'hover':
-        deps.desk.setPointerCapture(gesture.onPet || gesture.onUi)
-        if (gesture.onPet) deps.stage.lookAt(gesture.at)
-        break
-      case 'leave':
-        deps.desk.setPointerCapture(false)
-        break
-      case 'tap':
-        dispatch(pet.tap())
-        break
-      case 'dragBegin':
+    match(gesture)
+      .with({ kind: 'hover' }, (g) => {
+        deps.desk.setPointerCapture(g.onPet || g.onUi)
+        if (g.onPet) deps.stage.lookAt(g.at)
+      })
+      .with({ kind: 'leave' }, () => deps.desk.setPointerCapture(false))
+      .with({ kind: 'tap' }, () => dispatch(pet.tap()))
+      .with({ kind: 'dragBegin' }, () => {
         dispatch(pet.beginDrag())
         deps.desk.setPointerCapture(true)
-        break
-      case 'dragMove': {
+      })
+      .with({ kind: 'dragMove' }, (g) => {
         const viewport = deps.desk.viewport()
-        const dx = viewport.width > 0 ? gesture.delta.x / viewport.width : 0
-        const dy = viewport.height > 0 ? gesture.delta.y / viewport.height : 0
+        const dx = viewport.width > 0 ? g.delta.x / viewport.width : 0
+        const dy = viewport.height > 0 ? g.delta.y / viewport.height : 0
         dispatch(pet.moveTo(movePose(pet.pose, dx, dy)))
-        break
-      }
-      case 'dragEnd':
-        dispatch(pet.endDrag())
-        break
-    }
+      })
+      .with({ kind: 'dragEnd' }, () => dispatch(pet.endDrag()))
+      .exhaustive()
   }
 
   async function reconcile(next: Preferences): Promise<void> {
@@ -247,7 +237,7 @@ async function boot(deps: PetRuntimeDeps): Promise<() => void> {
   /* ---------- 装配 ---------- */
 
   const hitTest = (at: ScreenPoint): PointerTarget =>
-    withinRect(at, deps.stage.bounds())
+    rectContains(at, deps.stage.bounds(), HIT_PADDING_PX)
       ? 'pet'
       : deps.chat.isPointerOverUi(at)
         ? 'ui'
@@ -267,24 +257,15 @@ async function boot(deps: PetRuntimeDeps): Promise<() => void> {
     })
   )
 
-  disposers.push(
-    deps.brain.onReply((message) => {
-      switch (message.kind) {
-        case 'chunk':
-          dispatch(pet.receiveReplyChunk(message.text))
-          break
-        case 'mood':
-          dispatch(pet.express(toEmotion(message.emotion), message.cue))
-          break
-        case 'done':
-          dispatch(pet.completeReply())
-          break
-        case 'error':
-          dispatch(pet.failReply(message.reason))
-          break
-      }
-    })
-  )
+  const handleReply = (message: ReplyMessage): void =>
+    match(message)
+      .with({ kind: 'chunk' }, (m) => dispatch(pet.receiveReplyChunk(m.text)))
+      .with({ kind: 'mood' }, (m) => dispatch(pet.express(toEmotion(m.emotion), m.cue)))
+      .with({ kind: 'done' }, () => dispatch(pet.completeReply()))
+      .with({ kind: 'error' }, (m) => dispatch(pet.failReply(m.reason)))
+      .exhaustive()
+
+  disposers.push(deps.brain.onReply(handleReply))
   disposers.push(deps.brain.onStatus((status) => deps.chat.showStatus(status)))
 
   disposers.push(
@@ -303,17 +284,4 @@ async function boot(deps: PetRuntimeDeps): Promise<() => void> {
     cancelNotice?.()
     for (const off of disposers.splice(0)) off()
   }
-}
-
-function withinRect(
-  point: ScreenPoint,
-  rect: { x: number; y: number; width: number; height: number },
-  padding = 12
-): boolean {
-  return (
-    point.x >= rect.x - padding &&
-    point.x <= rect.x + rect.width + padding &&
-    point.y >= rect.y - padding &&
-    point.y <= rect.y + rect.height + padding
-  )
 }

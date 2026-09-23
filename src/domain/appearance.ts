@@ -6,7 +6,7 @@
  * 换模型只需要换一份形象清单（pet.model.json），领域代码不动。
  */
 
-import { isEmotion, type Emotion } from './emotion'
+import type { Emotion } from './emotion'
 
 /** 表演：某个情绪下的表情与动作提示（名字是形象内部的标识，由适配器解释） */
 export interface Performance {
@@ -33,41 +33,11 @@ export interface Appearance {
 export interface AppearanceSpec {
   readonly id: string
   readonly displayName?: string
-  /** 允许 undefined（清单里的 Partial 结构天然如此），非法项在 defineAppearance 中丢弃 */
+  /** 允许 undefined（清单里的 Partial 结构天然如此），非法项在 parseAppearanceSpec 中丢弃 */
   readonly performances?: Readonly<
     Record<string, { readonly expression?: string | null; readonly motion?: string } | undefined>
   >
   readonly tapMotion?: string
-}
-
-function cleanName(value: unknown): string | undefined {
-  return typeof value === 'string' && value.trim() ? value.trim() : undefined
-}
-
-/** 净化并构造形象：丢弃未知情绪、空绑定与坏值，保证领域侧数据始终合法 */
-export function defineAppearance(spec: AppearanceSpec): Appearance {
-  const performances: Partial<Record<Emotion, Performance>> = {}
-
-  for (const [key, binding] of Object.entries(spec.performances ?? {})) {
-    if (!isEmotion(key) || !binding || typeof binding !== 'object') continue
-
-    const expression =
-      binding.expression === null ? null : cleanName(binding.expression)
-    const cue = cleanName(binding.motion)
-
-    if (expression === undefined && cue === undefined) continue
-    performances[key] = {
-      ...(expression !== undefined ? { expression } : {}),
-      ...(cue !== undefined ? { cue } : {})
-    }
-  }
-
-  return {
-    id: cleanName(spec.id) ?? 'unknown',
-    displayName: cleanName(spec.displayName) ?? cleanName(spec.id) ?? 'unknown',
-    performances,
-    tapCue: cleanName(spec.tapMotion)
-  }
 }
 
 /** 查表：这个形象如何表演某种情绪（没有专门绑定时返回 undefined，由适配器决定兜底） */

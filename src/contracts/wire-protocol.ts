@@ -4,15 +4,10 @@
  * 设计原则：后端只下发「文本流 + 结构化指令」，情绪到表情/动作的翻译由前端完成。
  */
 
-export type EmotionName = 'neutral' | 'happy' | 'sad' | 'angry' | 'surprised'
+import type { Emotion } from '../domain/emotion'
 
-export const EMOTIONS: readonly EmotionName[] = [
-  'neutral',
-  'happy',
-  'sad',
-  'angry',
-  'surprised'
-]
+/** 情绪标签以领域层为唯一真相源，协议侧只做别名 */
+export type EmotionName = Emotion
 
 /* ---------- 客户端 → 服务端 ---------- */
 

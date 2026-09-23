@@ -5,8 +5,10 @@
  * 这里只通过 preload 白名单通信：把话递过去、把回话接回来。
  */
 
+import { match } from 'ts-pattern'
 import type { BrainChannel, BrainStatus, PetIdentity, ReplyMessage, Unsubscribe } from '../../domain'
 import { IPC } from '../../contracts/ipc'
+import { BrainInboundSchema } from '../../contracts/schemas'
 
 /** preload 暴露的桥形状（见 contracts 与 preload 入口） */
 export interface BrainBridge {
@@ -20,29 +22,21 @@ const isStatus = (value: unknown): value is BrainStatus =>
 
 /** 把主进程转来的原始消息翻译成领域语义（未知形状一律忽略） */
 export function toReplyMessage(raw: unknown): ReplyMessage | null {
-  if (!raw || typeof raw !== 'object') return null
-  const message = raw as { type?: unknown; delta?: unknown; emotion?: unknown; motion?: unknown; message?: unknown }
+  const parsed = BrainInboundSchema.safeParse(raw)
+  if (!parsed.success) return null
 
-  switch (message.type) {
-    case 'chat.delta':
-      return typeof message.delta === 'string' ? { kind: 'chunk', text: message.delta } : null
-    case 'chat.directive':
-      return {
-        kind: 'mood',
-        emotion: message.emotion,
-        cue: typeof message.motion === 'string' ? message.motion : undefined
-      }
-    case 'chat.done':
-      return { kind: 'done' }
-    case 'chat.error':
-      return {
-        kind: 'error',
-        reason: typeof message.message === 'string' && message.message ? message.message : '未知错误'
-      }
-    default:
-      // tts.chunk 等为后续预留，暂时不消费
-      return null
-  }
+  return match(parsed.data)
+    .with({ type: 'chat.delta' }, (m): ReplyMessage => ({ kind: 'chunk', text: m.delta }))
+    .with(
+      { type: 'chat.directive' },
+      (m): ReplyMessage => ({ kind: 'mood', emotion: m.emotion, cue: m.motion })
+    )
+    .with({ type: 'chat.done' }, (): ReplyMessage => ({ kind: 'done' }))
+    .with(
+      { type: 'chat.error' },
+      (m): ReplyMessage => ({ kind: 'error', reason: m.message || '未知错误' })
+    )
+    .exhaustive()
 }
 
 export class IpcBrainChannel implements BrainChannel {

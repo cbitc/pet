@@ -8,27 +8,16 @@
 
 import type { Appearance } from './appearance'
 import type { Emotion } from './emotion'
+import type { Rect, ScreenPoint, Viewport } from './geometry'
 import type { Pose } from './pose'
 import type { Preferences } from './preferences'
 
+// 点/矩形/视口与其上工具是领域通用语言，定义在 geometry.ts，
+// 这里原样转出，保证既有 `from './ports'` 的引用不受影响。
+export { clamp, rectContains } from './geometry'
+export type { Rect, ScreenPoint, Viewport } from './geometry'
+
 export type Unsubscribe = () => void
-
-export interface ScreenPoint {
-  readonly x: number
-  readonly y: number
-}
-
-export interface Rect {
-  readonly x: number
-  readonly y: number
-  readonly width: number
-  readonly height: number
-}
-
-export interface Viewport {
-  readonly width: number
-  readonly height: number
-}
 
 /* ---------- 形象舞台：让宠物「有形」 ---------- */
 

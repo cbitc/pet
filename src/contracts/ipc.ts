@@ -7,6 +7,7 @@
  */
 
 import type { AppConfig, DeepPartial } from './app-config'
+import type { BrainStatus } from '../domain/ports'
 import type { ModelCatalog } from './model-catalog'
 import type { ServerMessage } from './wire-protocol'
 
@@ -42,7 +43,7 @@ export type IpcChannel = (typeof IPC)[keyof typeof IPC]
 
 /** 事件通道（主 → 渲染）与其载荷 */
 export interface IpcEventPayloads {
-  [IPC.brainStatus]: string
+  [IPC.brainStatus]: BrainStatus
   [IPC.brainMessage]: ServerMessage
   [IPC.configChanged]: AppConfig
   [IPC.toggleInput]: null

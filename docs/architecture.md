@@ -301,8 +301,8 @@ Live2DModel.from() 失败 → 占位躯体 + 说明原因（catch 记录）
 气泡提示（并周期性重播，直到换上像样的形象）。
 
 情绪映射：模型目录里的 `pet.model.json` 声明 `情绪 → 表情/动作`；
-清单由 `adapters/bridge/appearance-catalog.ts` 转成领域形象
-（`domain/appearance.ts` 的 `defineAppearance` 负责净化与查表规则）。
+清单由 `adapters/bridge/appearance-catalog.ts` 经 `contracts/schemas.ts` 的
+`parseAppearanceSpec`（zod）净化成领域形象，查表规则是 `domain/appearance.ts` 的 `performanceFor`。
 **领域只认识情绪标签，不认识"f03"这种模型内部的表达式名。**
 
 ### 7.4 CSP 放宽的四个理由
@@ -474,7 +474,7 @@ position = (画布宽 × pose.x, 画布高 × pose.y)
 
 1. **原子写**：先写临时文件再 `rename`——断电/崩溃不会留下半截 JSON。
 2. **defaults 深合并**：读盘后与默认配置深合并——新增配置项后老文件自动补齐，无需迁移。
-3. **净化**：`contracts/app-config.ts` 的 `sanitizeConfig()` 对所有数值 clamp、
+3. **净化**：`contracts/app-config.ts` 的 `AppConfigSchema`（zod）对所有数值 clamp、
    非法枚举回退——**配置永不导致崩溃**。
 
 `sessionId` 在首次启动时生成 UUID，此后同一安装保持同一关系身份。

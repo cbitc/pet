@@ -1,6 +1,8 @@
 import { BrowserWindow, screen } from 'electron'
 import path from 'node:path'
 import { iconPath } from './asset-catalog'
+import { DIAGNOSTIC_PAGES } from './diagnostic-pages'
+import { overlayWindowOptions, secureWebPreferences } from './window-presets'
 
 /**
  * 宠物主窗口：覆盖主显示器工作区的整屏透明层。
@@ -10,32 +12,17 @@ import { iconPath } from './asset-catalog'
 export function createPetWindow(): BrowserWindow {
   const workArea = screen.getPrimaryDisplay().workArea
   const win = new BrowserWindow({
-    x: workArea.x,
-    y: workArea.y,
-    width: workArea.width,
-    height: workArea.height,
-    frame: false,
-    transparent: true,
-    hasShadow: false,
-    resizable: false,
-    movable: false,
-    minimizable: false,
-    maximizable: false,
-    fullscreenable: false,
-    skipTaskbar: true,
-    show: false,
-    backgroundColor: '#00000000',
+    ...overlayWindowOptions(
+      workArea,
+      secureWebPreferences({
+        preload: path.join(__dirname, '../preload/index.js'),
+        webSecurity: true,
+        backgroundThrottling: false,
+        spellcheck: false
+      })
+    ),
     title: 'Live2D Pet',
-    icon: iconPath(),
-    webPreferences: {
-      preload: path.join(__dirname, '../preload/index.js'),
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-      webSecurity: true,
-      backgroundThrottling: false,
-      spellcheck: false
-    }
+    icon: iconPath()
   })
 
   win.setAlwaysOnTop(true, 'screen-saver')
@@ -52,14 +39,9 @@ export function createPetWindow(): BrowserWindow {
   const renderQuery = process.env['PET_RENDER_QUERY']
 
   if (stage === 'blank' || stage === 'dom') {
-    const html =
-      stage === 'blank'
-        ? '<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;height:100%;background:transparent;overflow:hidden}</style></head><body></body></html>'
-        : `<!doctype html><html><head><meta charset="utf-8"><style>
-            html,body{margin:0;height:100%;background:transparent;overflow:hidden}
-            .box{position:absolute;left:200px;top:200px;width:420px;height:280px;border-radius:30px;background:rgba(224,48,48,.92)}
-          </style></head><body><div class="box"></div></body></html>`
-    void win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+    void win.loadURL(
+      `data:text/html;charset=utf-8,${encodeURIComponent(DIAGNOSTIC_PAGES[stage])}`
+    )
     return win
   }
 

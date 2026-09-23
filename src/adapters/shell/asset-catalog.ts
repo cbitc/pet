@@ -1,7 +1,8 @@
 import { app } from 'electron'
 import fs from 'node:fs'
 import path from 'node:path'
-import { ModelMeta } from '../../contracts/model-catalog'
+import { DEFAULT_MODEL_META, ModelMeta } from '../../contracts/model-catalog'
+import { ModelManifestSchema } from '../../contracts/schemas'
 
 /** 资源根目录：dev 为项目 resources/；打包后为 electron-builder 的 extraResources 目录 */
 export function resourceRoot(): string {
@@ -34,12 +35,15 @@ export function listModels(): ModelMeta[] {
     const metaFile = path.join(full, 'pet.model.json')
     try {
       if (fs.existsSync(metaFile)) {
-        const meta = JSON.parse(fs.readFileSync(metaFile, 'utf8')) as Partial<ModelMeta>
+        const parsed = ModelManifestSchema.safeParse(
+          JSON.parse(fs.readFileSync(metaFile, 'utf8')) as unknown
+        )
+        const meta = parsed.success ? parsed.data : {}
         models.push({
           dir,
           displayName: meta.displayName ?? dir,
           entry: meta.entry ?? guessEntry(full),
-          idleGroup: meta.idleGroup ?? 'Idle',
+          idleGroup: meta.idleGroup ?? DEFAULT_MODEL_META.idleGroup,
           tapMotion: meta.tapMotion,
           emotions: meta.emotions ?? {}
         })

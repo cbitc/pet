@@ -5,7 +5,7 @@
  * 大脑地址、开机自启之类的技术设定不属于宠物，由各自的适配器直接管理。
  */
 
-import { DEFAULT_POSE, poseFrom, type Pose } from './pose'
+import { DEFAULT_POSE, type Pose } from './pose'
 
 export interface Preferences {
   /** 穿哪套形象（形象 id） */
@@ -29,16 +29,3 @@ export const DEFAULT_PREFERENCES: Preferences = {
   sessionId: ''
 }
 
-/** 从不可信输入（配置文件、IPC 载荷）构造合法偏好 */
-export function preferencesFrom(raw: unknown): Preferences {
-  const source = (raw ?? {}) as Partial<Record<keyof Preferences, unknown>>
-  const appearanceId =
-    typeof source.appearanceId === 'string' && source.appearanceId.trim()
-      ? source.appearanceId.trim()
-      : DEFAULT_PREFERENCES.appearanceId
-  const persona =
-    typeof source.persona === 'string' ? source.persona : DEFAULT_PREFERENCES.persona
-  const sessionId = typeof source.sessionId === 'string' ? source.sessionId : ''
-
-  return { appearanceId, pose: poseFrom(source.pose), persona, sessionId }
-}

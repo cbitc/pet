@@ -6,8 +6,9 @@
  *   以及把其他入口（托盘、设置页）的改动转成偏好变更通知。
  */
 
-import { preferencesFrom, type Preferences, type PreferencesStore, type Unsubscribe } from '../../domain'
+import type { Preferences, PreferencesStore, Unsubscribe } from '../../domain'
 import { IPC } from '../../contracts/ipc'
+import { preferencesFromConfig } from '../../contracts/schemas'
 
 /** 偏好字段在应用配置里的形态（技术层形状，与领域解耦） */
 export interface PreferencesConfigLike {
@@ -25,12 +26,7 @@ export interface ConfigBridge {
 
 /** 应用配置 → 偏好 */
 export function toPreferences(config: PreferencesConfigLike | null | undefined): Preferences {
-  return preferencesFrom({
-    appearanceId: config?.modelDir,
-    pose: config?.pose,
-    persona: config?.brain?.persona,
-    sessionId: config?.sessionId
-  })
+  return preferencesFromConfig(config)
 }
 
 /** 偏好补丁 → 应用配置补丁（只包含本次真正改动的字段） */

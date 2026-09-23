@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { Pet } from '../../src/domain/pet'
-import { defineAppearance } from '../../src/domain/appearance'
+import type { Appearance } from '../../src/domain/appearance'
 import { DEFAULT_POSE, POSE_BOUNDS } from '../../src/domain/pose'
 
-const HARU = defineAppearance({
+const HARU: Appearance = {
   id: 'haru',
   displayName: 'Haru',
-  tapMotion: 'Tap',
-  performances: { happy: { expression: 'f03', motion: 'Tap' } }
-})
+  tapCue: 'Tap',
+  performances: { happy: { expression: 'f03', cue: 'Tap' } }
+}
 
 describe('宠物', () => {
   it('现身只发生一次', () => {

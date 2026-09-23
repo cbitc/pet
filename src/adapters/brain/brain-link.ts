@@ -2,9 +2,8 @@ import { EventEmitter } from 'node:events'
 import WebSocket from 'ws'
 import { AppConfig } from '../../contracts/app-config'
 import { ClientMessage, ServerMessage } from '../../contracts/wire-protocol'
+import type { BrainStatus } from '../../domain/ports'
 import { startMockBrain, MockBrainHandle } from './mock-brain'
-
-export type BrainStatus = 'connecting' | 'online' | 'offline'
 
 /**
  * 大脑网关：主进程内唯一的对外 WS 客户端。

@@ -5,7 +5,6 @@
 
 import {
   DEFAULT_PREFERENCES,
-  defineAppearance,
   type Appearance,
   type AppearanceSpec,
   type BrainChannel,
@@ -29,9 +28,10 @@ import {
   type Unsubscribe
 } from '../../src/domain'
 import { createPetRuntime, type PetRuntime } from '../../src/app/pet-runtime'
+import { parseAppearanceSpec } from '../../src/contracts/schemas'
 
 export function appearance(id: string, performances: AppearanceSpec['performances'] = {}): Appearance {
-  return defineAppearance({ id, displayName: id, performances })
+  return parseAppearanceSpec({ id, displayName: id, performances })
 }
 
 /* ---------- 形象舞台 ---------- */

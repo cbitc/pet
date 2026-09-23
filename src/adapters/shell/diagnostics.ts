@@ -1,6 +1,8 @@
 import { app, BrowserWindow, desktopCapturer, screen } from 'electron'
 import fs from 'node:fs'
 import path from 'node:path'
+import { DIAGNOSTIC_PAGES, type DiagnosticPage } from './diagnostic-pages'
+import { overlayWindowOptions, secureWebPreferences } from './window-presets'
 
 /**
  * 渲染诊断（PET_DIAG=1 启用）：
@@ -149,55 +151,22 @@ export function diagWindow(win: BrowserWindow): void {
 export async function runScenario(which: string): Promise<void> {
   const display = screen.getPrimaryDisplay()
   const area = display.workArea
-  const common = {
-    x: area.x,
-    y: area.y,
-    width: area.width,
-    height: area.height,
-    frame: false,
-    hasShadow: false,
-    resizable: false,
-    skipTaskbar: true,
-    show: false as const,
-    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true }
-  }
-
   const transparent = which !== 'opaque'
   const win = new BrowserWindow({
-    ...common,
+    ...overlayWindowOptions(area, secureWebPreferences()),
     transparent,
     backgroundColor: transparent ? '#00000000' : '#102040',
     alwaysOnTop: true
   })
   win.setAlwaysOnTop(true, 'screen-saver')
 
-  const html: Record<string, string> = {
-    blank: '<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;height:100%;background:transparent;overflow:hidden}</style></head><body></body></html>',
-    dom: `<!doctype html><html><head><meta charset="utf-8"><style>
-      html,body{margin:0;height:100%;background:transparent;overflow:hidden}
-      .box{position:absolute;left:200px;top:200px;width:420px;height:280px;border-radius:30px;background:rgba(224,64,64,.95)}
-    </style></head><body><div class="box"></div></body></html>`,
-    webgl: `<!doctype html><html><head><meta charset="utf-8"><style>
-      html,body{margin:0;height:100%;background:transparent;overflow:hidden}
-      #gl{position:absolute;inset:0;width:100%;height:100%}
-    </style></head><body><canvas id="gl"></canvas><script>
-      const c = document.getElementById('gl')
-      const gl = c.getContext('webgl2', { alpha: true, premultipliedAlpha: true, antialias: true })
-      c.width = innerWidth; c.height = innerHeight
-      function draw(){ gl.viewport(0,0,c.width,c.height); gl.clearColor(0,0.8,0.35,0.95); gl.clear(gl.COLOR_BUFFER_BIT); requestAnimationFrame(draw) }
-      draw()
-    </script></body></html>`,
-    opaque: `<!doctype html><html><head><meta charset="utf-8"><style>
-      html,body{margin:0;height:100%;background:#102040;overflow:hidden}
-      .box{position:absolute;left:200px;top:200px;width:420px;height:280px;border-radius:30px;background:rgba(224,64,64,.95)}
-    </style></head><body><div class="box"></div></body></html>`
-  }
+  const html = DIAGNOSTIC_PAGES[which as DiagnosticPage] ?? DIAGNOSTIC_PAGES.dom
 
   const dir = outDir()
   fs.mkdirSync(dir, { recursive: true })
   dlog(`scenario=${which} transparent=${transparent}`, JSON.stringify(win.getBounds()))
 
-  await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html[which] ?? html.dom)}`)
+  await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
   await new Promise((r) => setTimeout(r, 400))
 
   // 1) show 前背景基线 ×2
@@ -255,27 +224,14 @@ let capturesStarted = false
  */
 export function runMinimalProbe(): void {
   const win = new BrowserWindow({
-    x: 120,
-    y: 120,
-    width: 720,
-    height: 480,
-    frame: false,
-    transparent: true,
-    hasShadow: false,
-    alwaysOnTop: true,
-    skipTaskbar: true,
-    show: false,
-    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true }
+    ...overlayWindowOptions({ x: 120, y: 120, width: 720, height: 480 }, secureWebPreferences()),
+    alwaysOnTop: true
   })
   win.setAlwaysOnTop(true, 'screen-saver')
   dlog('minimal probe window created', JSON.stringify(win.getBounds()))
-  const html = `<!doctype html><html><head><meta charset="utf-8"><style>
-    html,body{margin:0;height:100%;background:transparent;overflow:hidden}
-    .box{position:absolute;left:60px;top:60px;width:320px;height:200px;border-radius:28px;
-         background:rgba(224,64,64,.95);box-shadow:0 8px 30px rgba(0,0,0,.35)}
-    .txt{position:absolute;left:60px;top:290px;color:#123;font:16px/1.4 sans-serif;background:rgba(255,255,255,.9);padding:6px 10px;border-radius:8px}
-  </style></head><body><div class="box"></div><div class="txt">minimal transparent probe</div></body></html>`
-  void win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+  void win.loadURL(
+    `data:text/html;charset=utf-8,${encodeURIComponent(DIAGNOSTIC_PAGES.minimal)}`
+  )
   win.on('show', () => {
     dlog('minimal probe shown')
     scheduleCaptures(win)

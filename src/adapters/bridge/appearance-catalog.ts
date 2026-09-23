@@ -5,7 +5,8 @@
  * 具体怎么加载模型、模型文件长什么样，属于形象舞台（stage/）。
  */
 
-import { defineAppearance, type Appearance } from '../../domain'
+import type { Appearance } from '../../domain'
+import { parseAppearanceSpec } from '../../contracts/schemas'
 
 /** 壳扫描出的模型描述（与 shared/model.ts 的 ModelMeta 结构一致） */
 export interface ModelAssetLike {
@@ -21,7 +22,7 @@ export interface AssetCatalogLike {
 
 export function appearancesFromAssets(assets: AssetCatalogLike | null | undefined): Appearance[] {
   return (assets?.models ?? []).map((model) =>
-    defineAppearance({
+    parseAppearanceSpec({
       id: model.dir,
       displayName: model.displayName,
       tapMotion: model.tapMotion,

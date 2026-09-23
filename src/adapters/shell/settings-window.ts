@@ -1,6 +1,7 @@
 import { BrowserWindow } from 'electron'
 import path from 'node:path'
 import { iconPath } from './asset-catalog'
+import { secureWebPreferences } from './window-presets'
 
 let settingsWin: BrowserWindow | null = null
 
@@ -20,13 +21,10 @@ export function openSettingsWindow(): BrowserWindow | null {
     title: '桌宠设置',
     icon: iconPath(),
     autoHideMenuBar: true,
-    webPreferences: {
+    webPreferences: secureWebPreferences({
       preload: path.join(__dirname, '../preload/index.js'),
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
       spellcheck: false
-    }
+    })
   })
   settingsWin.setMenuBarVisibility(false)
 

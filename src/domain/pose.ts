@@ -7,6 +7,8 @@
  * 而不是散落在拖拽代码里。
  */
 
+import { clamp } from './geometry'
+
 export interface Pose {
   /** 水平位置（占桌面宽度比例，锚点为宠物中心） */
   readonly x: number
@@ -25,30 +27,12 @@ export const POSE_BOUNDS = {
 
 export const DEFAULT_POSE: Pose = { x: 0.8, y: 0.68, scale: 0.55 }
 
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value))
-}
-
-function finiteOr(value: unknown, fallback: number): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : fallback
-}
-
 export function clampPose(pose: Pose): Pose {
   return {
     x: clamp(pose.x, POSE_BOUNDS.x[0], POSE_BOUNDS.x[1]),
     y: clamp(pose.y, POSE_BOUNDS.y[0], POSE_BOUNDS.y[1]),
     scale: clamp(pose.scale, POSE_BOUNDS.scale[0], POSE_BOUNDS.scale[1])
   }
-}
-
-/** 从不可信输入构造姿态（配置文件、IPC 载荷）；坏值回退到默认 */
-export function poseFrom(raw: unknown): Pose {
-  const source = (raw ?? {}) as { x?: unknown; y?: unknown; scale?: unknown }
-  return clampPose({
-    x: finiteOr(source.x, DEFAULT_POSE.x),
-    y: finiteOr(source.y, DEFAULT_POSE.y),
-    scale: finiteOr(source.scale, DEFAULT_POSE.scale)
-  })
 }
 
 /** 挪窝：在当前姿态上叠加归一化位移（拖拽时按视口尺寸换算后调用） */

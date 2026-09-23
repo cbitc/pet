@@ -5,6 +5,7 @@
  * 领域只知道「显示主人的话」「开始一段回复」「说一句」「提示」「跟随宠物」。
  */
 
+import { clamp, rectContains } from '../../../domain'
 import type {
   BrainStatus,
   ChatSurface,
@@ -31,8 +32,6 @@ const STATUS_TEXT: Record<BrainStatus, string> = {
 /** 在线状态只提示片刻 */
 const STATUS_ONLINE_LINGER_MS = 2500
 const STATUS_FADE_MS = 450
-
-const clamp = (v: number, min: number, max: number): number => Math.min(max, Math.max(min, v))
 
 class DomReplySink implements ReplySink {
   private readonly textSpan: HTMLSpanElement
@@ -182,28 +181,10 @@ export class DomChatSurface implements ChatSurface {
   }
 
   isPointerOverUi(at: ScreenPoint): boolean {
-    if (!this.inputBar.hidden) {
-      const rect = this.inputBar.getBoundingClientRect()
-      if (
-        at.x >= rect.left - 6 &&
-        at.x <= rect.right + 6 &&
-        at.y >= rect.top - 6 &&
-        at.y <= rect.bottom + 6
-      ) {
-        return true
-      }
-    }
-    const statusRect = this.statusChip.getBoundingClientRect()
-    if (
-      !this.statusChip.hidden &&
-      at.x >= statusRect.left &&
-      at.x <= statusRect.right &&
-      at.y >= statusRect.top &&
-      at.y <= statusRect.bottom
-    ) {
+    if (!this.inputBar.hidden && rectContains(at, this.inputBar.getBoundingClientRect(), 6)) {
       return true
     }
-    return false
+    return !this.statusChip.hidden && rectContains(at, this.statusChip.getBoundingClientRect())
   }
 
   placeNear(rect: Rect): void {
