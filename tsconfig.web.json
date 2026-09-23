@@ -17,6 +17,8 @@
   "include": [
     "src/preload/**/*.ts",
     "src/shared/**/*.ts",
+    "src/domain/**/*.ts",
+    "src/app/**/*.ts",
     "src/renderer/src/**/*.ts",
     "src/renderer/*.html"
   ]

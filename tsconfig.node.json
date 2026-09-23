@@ -14,5 +14,13 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/main/**/*.ts", "src/shared/**/*.ts", "electron.vite.config.ts"]
+  "include": [
+    "src/main/**/*.ts",
+    "src/shared/**/*.ts",
+    "src/domain/**/*.ts",
+    "src/app/**/*.ts",
+    "tests/**/*.ts",
+    "vitest.config.ts",
+    "electron.vite.config.ts"
+  ]
 }
