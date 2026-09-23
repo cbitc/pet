@@ -128,13 +128,65 @@ app.whenReady().then(() => {
     petWin.once('ready-to-show', () => {
       void (async () => {
         try {
-          await sleep(1200)
-          // 走真实 UI 路径：输入框填入文本并回车，覆盖 input→controller→bridge→网关→Mock大脑→流式回包 全链路
+          await sleep(1500)
+
+          // 1) 点击宠物：应当被识别为点击（而非拖动）→ 输入框弹出
+          const clickResult = (await petWin!.webContents.executeJavaScript(
+            `(async () => {
+              const cfg = await window.pet.getConfig()
+              const at = {
+                x: Math.round(innerWidth * cfg.pose.x),
+                y: Math.round(innerHeight * cfg.pose.y)
+              }
+              const down = new PointerEvent('pointerdown', { ...at, bubbles: true, button: 0 })
+              Object.defineProperty(down, 'clientX', { value: at.x })
+              Object.defineProperty(down, 'clientY', { value: at.y })
+              window.dispatchEvent(down)
+              window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }))
+              await new Promise((r) => setTimeout(r, 120))
+              return { at, inputVisible: !document.getElementById('input-bar').hidden }
+            })()`
+          )) as { at: { x: number; y: number }; inputVisible: boolean }
+          console.log(
+            `[smoke] 点击宠物 @${clickResult.at.x},${clickResult.at.y} → 输入框${clickResult.inputVisible ? '已弹出 PASS' : '未弹出 FAIL'}`
+          )
+
+          // 2) 拖动宠物：应当被识别为拖动 → 位置改变并在防抖后落盘
+          const before = store.get().pose
+          await petWin!.webContents.executeJavaScript(
+            `(async () => {
+              const cfg = await window.pet.getConfig()
+              const start = {
+                x: Math.round(innerWidth * cfg.pose.x),
+                y: Math.round(innerHeight * cfg.pose.y)
+              }
+              const fire = (type, x, y) => {
+                const e = new PointerEvent(type, { bubbles: true, button: 0 })
+                Object.defineProperty(e, 'clientX', { value: x })
+                Object.defineProperty(e, 'clientY', { value: y })
+                window.dispatchEvent(e)
+              }
+              fire('pointerdown', start.x, start.y)
+              for (let i = 1; i <= 6; i++) {
+                fire('pointermove', start.x + i * 12, start.y + i * 8)
+                await new Promise((r) => setTimeout(r, 16))
+              }
+              fire('pointerup', start.x + 72, start.y + 48)
+            })()`
+          )
+          await sleep(800) // 等防抖落盘
+          const after = store.get().pose
+          const moved =
+            Math.abs(after.x - before.x) > 0.001 || Math.abs(after.y - before.y) > 0.001
+          console.log(
+            `[smoke] 拖动宠物 → 位置 (${before.x.toFixed(3)},${before.y.toFixed(3)}) → ` +
+              `(${after.x.toFixed(3)},${after.y.toFixed(3)}) ${moved ? 'PASS' : 'FAIL'}`
+          )
+
+          // 3) 在（已弹出的）输入框里说一句话，走完 输入→运行时→IPC→网关→Mock大脑→流式回包 全链路
           await petWin!.webContents.executeJavaScript(
             `(() => {
               const input = document.getElementById('chat-input')
-              const bar = document.getElementById('input-bar')
-              bar.hidden = false
               input.value = '你好呀，冒烟测试！'
               input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
               return 'ok'
@@ -142,6 +194,7 @@ app.whenReady().then(() => {
           )
           await sleep(3800)
           await capture(petWin!, 'pet.png')
+
           console.log('[smoke] 打开设置页')
           const settings = openSettingsWindow()
           await sleep(1800)

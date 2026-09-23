@@ -112,7 +112,12 @@ export class ElectronDesk implements DeskSurface {
     this.downAt = at
     this.lastAt = at
     this.setPointerCapture(true)
-    ;(e.target as Element | null)?.setPointerCapture?.(e.pointerId)
+    // 合成事件（冒烟自检用的程序化事件）没有真实指针，捕获可能不可用
+    try {
+      ;(e.target as Element | null)?.setPointerCapture?.(e.pointerId)
+    } catch {
+      // 指针捕获只是锦上添花，失败不影响手势识别
+    }
   }
 
   private onPointerMove = (e: PointerEvent): void => {

@@ -6,7 +6,7 @@
  */
 
 import { createPetRuntime, type PetRuntime } from '../app/pet-runtime'
-import { DEFAULT_POSE, type Appearance } from '../domain'
+import { DEFAULT_POSE } from '../domain'
 import type { PetBridge } from '../preload'
 import { appearancesFromAssets } from '../adapters/bridge/appearance-catalog'
 import { ElectronDesk } from '../adapters/bridge/electron-desk'
@@ -89,4 +89,4 @@ main().catch((err) => {
   document.getElementById('bubbles')?.appendChild(bubble)
 })
 
-export type { Appearance }
+
