@@ -36,7 +36,7 @@ npm run dev            # 启动开发（HMR）
 | `npm run typecheck` | main + renderer 双工程类型检查 |
 | `npm run fetch:assets` | 下载 Cubism Core 与示例模型（可重复执行） |
 | `npm run gen:icon` | 重新生成图标（纯 Node，无原生依赖） |
-| `npm run smoke` | 冒烟自检：启动 → 自动发一条消息 → 截图 `.smoke/pet.png` → 退出 |
+| `npm run smoke` | 冒烟自检：启动 → 自动发消息（截图存 `.smoke/`）→ 外部 GDI 实拍屏幕校验**透明窗无白屏** |
 | `npm run dist:win` | 打包 Windows NSIS 安装包 + portable（产物在 `dist/`） |
 
 > 打包工具链若被网络卡住，使用镜像：

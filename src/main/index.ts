@@ -9,6 +9,14 @@ import { createPetWindow } from './pet-window'
 import { openSettingsWindow } from './settings-window'
 import { PetTray } from './tray'
 import { BrainGateway } from './brain-gateway'
+import {
+  applyDiagSwitches,
+  diagAppStartup,
+  diagWindow,
+  DIAG,
+  runMinimalProbe,
+  runScenario
+} from './diagnostics'
 
 // 单实例：重复启动时聚焦已有宠物
 if (!app.requestSingleInstanceLock()) {
@@ -16,6 +24,7 @@ if (!app.requestSingleInstanceLock()) {
 }
 app.on('second-instance', () => petWin?.showInactive())
 
+applyDiagSwitches()
 registerPetScheme()
 
 let petWin: ReturnType<typeof createPetWindow> | null = null
@@ -26,10 +35,25 @@ const isFromPet = (sender: Electron.WebContents): boolean =>
   !!petWin && !petWin.isDestroyed() && sender.id === petWin.webContents.id
 
 app.whenReady().then(() => {
+  diagAppStartup()
   store.init()
   registerPetProtocol()
 
+  // 最小对照实验：只开一个无 Pixi 的透明窗，验证环境是否支持透明合成
+  if (DIAG && process.env['PET_DIAG_MINIMAL'] === '1') {
+    runMinimalProbe()
+    return
+  }
+
+  // 受控场景实验：隔离「内容类型」变量，定位白屏触发条件
+  const scenario = process.env['PET_DIAG_SCENARIO']
+  if (DIAG && scenario) {
+    void runScenario(scenario)
+    return
+  }
+
   petWin = createPetWindow()
+  diagWindow(petWin)
   petWin.webContents.on('render-process-gone', (_e, details) => {
     console.error('[main] render-process-gone:', JSON.stringify(details))
   })

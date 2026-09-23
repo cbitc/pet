@@ -2,6 +2,8 @@ node_modules/
 out/
 dist/
 .smoke/
+.diag/
+.tmpx/
 *.log
 *.tsbuildinfo
 

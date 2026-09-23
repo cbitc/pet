@@ -42,11 +42,44 @@ export function createPetWindow(): BrowserWindow {
   // 初始全穿透，渲染进程根据命中检测动态切换
   win.setIgnoreMouseEvents(true, { forward: true })
 
+  // 诊断模式（PET_DIAG=1）给页面注入 ?diag=1，启用渲染侧日志；
+  // PET_DIAG_PAGE 控制渲染内容分支，用于白屏问题的变量隔离实验
+  const diag = process.env['PET_DIAG'] === '1'
+  const stage = process.env['PET_DIAG_PAGE']
   const devUrl = process.env['ELECTRON_RENDERER_URL']
+
+  // 渲染参数注入（排障用）：PET_RENDER_QUERY=aa=0&premul=0
+  const renderQuery = process.env['PET_RENDER_QUERY']
+
+  if (stage === 'blank' || stage === 'dom') {
+    const html =
+      stage === 'blank'
+        ? '<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;height:100%;background:transparent;overflow:hidden}</style></head><body></body></html>'
+        : `<!doctype html><html><head><meta charset="utf-8"><style>
+            html,body{margin:0;height:100%;background:transparent;overflow:hidden}
+            .box{position:absolute;left:200px;top:200px;width:420px;height:280px;border-radius:30px;background:rgba(224,48,48,.92)}
+          </style></head><body><div class="box"></div></body></html>`
+    void win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+    return win
+  }
+
+  const params = new URLSearchParams()
+  if (diag) params.set('diag', '1')
+  if (stage) params.set('stage', stage)
+  if (renderQuery) {
+    for (const [k, v] of new URLSearchParams(renderQuery)) params.set(k, v)
+  }
+  const qs = params.toString()
+
   if (devUrl) {
-    void win.loadURL(devUrl)
+    const url = new URL(devUrl)
+    url.search = qs
+    void win.loadURL(url.toString())
   } else {
-    void win.loadFile(path.join(__dirname, '../renderer/index.html'))
+    void win.loadFile(
+      path.join(__dirname, '../renderer/index.html'),
+      qs ? { query: Object.fromEntries(params) } : undefined
+    )
   }
 
   win.once('ready-to-show', () => win.showInactive())
