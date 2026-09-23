@@ -4,9 +4,8 @@
 > **原理在代码里的哪里落地（映射）**。
 >
 > 阅读顺序建议：先读 [domain.md](domain.md)（宠物是什么、有什么规矩），
-> 再读本文（技术怎么实现它）。
-> 其他配套：[brain-protocol.md](brain-protocol.md)（前后端契约）、
-> [white-screen-investigation.md](white-screen-investigation.md)（白屏排查实录）。
+> 再读本文（技术怎么实现它），最后 [conventions.md](conventions.md)（什么算合格）。
+> [issues/](issues/README.md)（变更与事故记录）。
 
 ---
 
@@ -14,14 +13,14 @@
 
 代码被刻意分成「只讲业务」与「只讲技术」两层，**任何一层都能独立读完**：
 
-| 想了解 | 读什么 | 特征 |
-|---|---|---|
-| 宠物能做什么、有什么规矩 | `src/domain/`（8 个文件，约 700 行） | 零技术依赖：不 import electron / pixi / DOM / ws，有测试守护 |
-| 与业务无关的通用原语 | `src/shared/` | 最底层：不 import 任何模块（clamp / 命中判定），供各层共用 |
-| 宠物与外界怎么协作 | `src/app/pet-runtime.ts` | 只对着端口说话，仍然零技术细节 |
-| 宠物需要世界提供什么 | `src/domain/ports.ts` | 六个端口的形状 = 业务需求清单 |
-| 具体怎么实现（Electron/Pixi/WS） | `src/adapters/` | 全部技术细节的家 |
-| 这些零件怎么接起来 | `src/entries/` | main / preload / renderer 三个组装根 |
+| 想了解                           | 读什么                               | 特征                                                         |
+| -------------------------------- | ------------------------------------ | ------------------------------------------------------------ |
+| 宠物能做什么、有什么规矩         | `src/domain/`（8 个文件，约 700 行） | 零技术依赖：不 import electron / pixi / DOM / ws，有测试守护 |
+| 与业务无关的通用原语             | `src/shared/`                        | 最底层：不 import 任何模块（clamp / 命中判定），供各层共用   |
+| 宠物与外界怎么协作               | `src/app/pet-runtime.ts`             | 只对着端口说话，仍然零技术细节                               |
+| 宠物需要世界提供什么             | `src/domain/ports.ts`                | 六个端口的形状 = 业务需求清单                                |
+| 具体怎么实现（Electron/Pixi/WS） | `src/adapters/`                      | 全部技术细节的家                                             |
+| 这些零件怎么接起来               | `src/entries/`                       | main / preload / renderer 三个组装根                         |
 
 领域层与端口的关系（这张图是理解全部代码的钥匙）：
 
@@ -64,15 +63,15 @@
 
 完整说明见 [domain.md](domain.md)；这里只列代码入口。
 
-| 领域概念 | 代码 | 职责 |
-|---|---|---|
-| 宠物 | `domain/pet.ts` | 聚合根：状态（栖姿/心情/形象/对话轮次）+ 行为（现身/听/说/表演/挪窝/换装），行为返回领域事件 |
-| 栖息姿态 | `domain/pose.ts` | 归一化坐标 + 活动范围规则（不越界、体型区间） |
-| 情绪 / 形象 | `domain/emotion.ts`、`domain/appearance.ts` | 情绪标签；形象的表演表与查表规则 |
-| 对话轮次 | `domain/conversation.ts` | 一问一答的生命周期（等待→流式→结束）；"一轮未完成不接新话"的规则载体 |
-| 偏好 | `domain/preferences.ts` | 主人的设定（形象/位置/人设/关系身份），含坏数据回退 |
-| 领域事件 | `domain/events.ts` | 12 种过去时事件（PetAppeared / PetMoved / ReplyChunk / Degraded …） |
-| 六个端口 | `domain/ports.ts` | 形象舞台、桌面、心智、对话界面、偏好存储 |
+| 领域概念    | 代码                                        | 职责                                                                                         |
+| ----------- | ------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 宠物        | `domain/pet.ts`                             | 聚合根：状态（栖姿/心情/形象/对话轮次）+ 行为（现身/听/说/表演/挪窝/换装），行为返回领域事件 |
+| 栖息姿态    | `domain/pose.ts`                            | 归一化坐标 + 活动范围规则（不越界、体型区间）                                                |
+| 情绪 / 形象 | `domain/emotion.ts`、`domain/appearance.ts` | 情绪标签；形象的表演表与查表规则                                                             |
+| 对话轮次    | `domain/conversation.ts`                    | 一问一答的生命周期（等待→流式→结束）；"一轮未完成不接新话"的规则载体                         |
+| 偏好        | `domain/preferences.ts`                     | 主人的设定（形象/位置/人设/关系身份），含坏数据回退                                          |
+| 领域事件    | `domain/events.ts`                          | 12 种过去时事件（PetAppeared / PetMoved / ReplyChunk / Degraded …）                          |
+| 六个端口    | `domain/ports.ts`                           | 形象舞台、桌面、心智、对话界面、偏好存储                                                     |
 
 **关键设计**：`Pet` 不"做"任何事，它只**宣布发生了什么**（返回事件数组）。
 "把宠物摆到新位置""把文字写进气泡"这些动作由运行时翻译成端口调用——
@@ -86,9 +85,9 @@
 
 两种主流做法：
 
-| 方案 | 做法 | 后果 |
-|---|---|---|
-| A. 小窗贴模型 | 窗口大小≈模型大小，拖窗口 | 气泡、输入框会被窗口边缘**裁剪**；窗口尺寸随模型缩放频繁变化；DPI 换算复杂 |
+| 方案                    | 做法                            | 后果                                                                           |
+| ----------------------- | ------------------------------- | ------------------------------------------------------------------------------ |
+| A. 小窗贴模型           | 窗口大小≈模型大小，拖窗口       | 气泡、输入框会被窗口边缘**裁剪**；窗口尺寸随模型缩放频繁变化；DPI 换算复杂     |
 | B. 整屏透明层（本项目） | 窗口=显示器工作区，内部自由摆放 | 元素永不被裁剪；坐标体系统一；代价是必须处理**穿透**（§4）与**透明合成**（§5） |
 
 选择 B 的直接后果：**"拖动宠物"= 移动舞台内模型的坐标，而不是移动窗口**。
@@ -98,17 +97,17 @@
 
 `createPetWindow()`（`adapters/shell/pet-window.ts`）：
 
-| 参数 | 值 | 原理 |
-|---|---|---|
-| `frame` | `false` | 无系统边框，纯内容 |
-| `transparent` | `true` | 窗口背景参与 alpha 合成，露出桌面 |
-| `hasShadow` / `resizable` / `movable` / `minimizable` / `maximizable` / `fullscreenable` | 全 `false` | 整屏层不该有窗口行为；`movable:false` 防止系统级拖动与模型拖动冲突 |
-| `skipTaskbar` | `true` | 桌宠是"挂件"，不进任务栏 |
-| `backgroundColor` | `'#00000000'` | 全透明底色（DOM 层底色，与 §5 的 WebGL 预乘问题无关） |
-| `show:false` + `ready-to-show → showInactive()` | — | 避免白屏闪烁；不抢焦点（桌宠不应打断主人） |
-| `setAlwaysOnTop(true, 'screen-saver')` | — | 层级高于普通置顶窗口，屏保之上仍可见 |
-| `backgroundThrottling: false` | — | 窗口失焦后 Chromium 默认降帧，桌宠会"僵住" |
-| `setIgnoreMouseEvents(true, { forward: true })` | 初始全穿透 | 详见 §4 |
+| 参数                                                                                     | 值            | 原理                                                               |
+| ---------------------------------------------------------------------------------------- | ------------- | ------------------------------------------------------------------ |
+| `frame`                                                                                  | `false`       | 无系统边框，纯内容                                                 |
+| `transparent`                                                                            | `true`        | 窗口背景参与 alpha 合成，露出桌面                                  |
+| `hasShadow` / `resizable` / `movable` / `minimizable` / `maximizable` / `fullscreenable` | 全 `false`    | 整屏层不该有窗口行为；`movable:false` 防止系统级拖动与模型拖动冲突 |
+| `skipTaskbar`                                                                            | `true`        | 桌宠是"挂件"，不进任务栏                                           |
+| `backgroundColor`                                                                        | `'#00000000'` | 全透明底色（DOM 层底色，与 §5 的 WebGL 预乘问题无关）              |
+| `show:false` + `ready-to-show → showInactive()`                                          | —             | 避免白屏闪烁；不抢焦点（桌宠不应打断主人）                         |
+| `setAlwaysOnTop(true, 'screen-saver')`                                                   | —             | 层级高于普通置顶窗口，屏保之上仍可见                               |
+| `backgroundThrottling: false`                                                            | —             | 窗口失焦后 Chromium 默认降帧，桌宠会"僵住"                         |
+| `setIgnoreMouseEvents(true, { forward: true })`                                          | 初始全穿透    | 详见 §4                                                            |
 
 安全三件套：`contextIsolation: true`、`nodeIntegration: false`、`sandbox: true`。
 
@@ -152,10 +151,10 @@ IPC 落地在 `entries/main.ts`（含 sender 校验，只有宠物窗能调用�
 
 ### 4.3 命中检测的两个来源
 
-| 来源 | 判定方式 | 代码 |
-|---|---|---|
+| 来源     | 判定方式                                              | 代码                                                                          |
+| -------- | ----------------------------------------------------- | ----------------------------------------------------------------------------- |
 | 宠物本体 | 舞台上报的包围盒（`PetStage.bounds()`，含 12px 容差） | `adapters/presentation/stage/pixi-stage.ts` + `app/pet-runtime.ts` 的 hitTest |
-| 界面部件 | 输入条/角标的实际矩形（`getBoundingClientRect`） | `adapters/presentation/chat/dom-chat-surface.ts` 的 `isPointerOverUi` |
+| 界面部件 | 输入条/角标的实际矩形（`getBoundingClientRect`）      | `adapters/presentation/chat/dom-chat-surface.ts` 的 `isPointerOverUi`         |
 
 **领域语义**：运行时把两者合成为一个 `PointerTarget = 'pet' | 'ui' | 'none'` 判定函数交给桌面适配器
 （`DeskSurface.setHitTest`）——"什么算宠物、什么算界面"是业务判断（运行时），
@@ -222,11 +221,11 @@ resolution: options.resolution ?? 1,                      // ← 与 CSS 像素 
 
 Core 脚本与模型文件在运行时才需要，且**不能打进 asar**（Core 有再分发许可限制、模型要允许用户替换）。
 
-| 方案 | 问题 |
-|---|---|
-| `file://` 直接引用 | 渲染进程页面跨源加载受限；打包后路径不可控 |
-| 打进 asar 读包内路径 | Core 不能被"再分发打包"规避许可；用户无法替换模型 |
-| **自定义协议 `pet://`（采用）** | 统一寻址，跨源可控，物理文件保持"用户可见可替换" |
+| 方案                            | 问题                                              |
+| ------------------------------- | ------------------------------------------------- |
+| `file://` 直接引用              | 渲染进程页面跨源加载受限；打包后路径不可控        |
+| 打进 asar 读包内路径            | Core 不能被"再分发打包"规避许可；用户无法替换模型 |
+| **自定义协议 `pet://`（采用）** | 统一寻址，跨源可控，物理文件保持"用户可见可替换"  |
 
 ### 6.2 实现
 
@@ -245,11 +244,11 @@ Core 脚本与模型文件在运行时才需要，且**不能打进 asar**（Cor
 
 ### 6.3 许可约束如何在结构上落实
 
-| 约束 | 结构落实 |
-|---|---|
-| Cubism Core 禁止再分发 | `resources/core/` 在 `.gitignore`；由 `scripts/fetch-core.mjs` 从官方下载 |
-| Core 仍需随应用运行 | 页面经 `<script src="pet://core/live2dcubismcore.min.js">` 引导（`src/renderer/index.html`） |
-| 模型可替换 | 资产扫描 + 形象清单机制（§7.3），换目录即换模型 |
+| 约束                   | 结构落实                                                                                     |
+| ---------------------- | -------------------------------------------------------------------------------------------- |
+| Cubism Core 禁止再分发 | `resources/core/` 在 `.gitignore`；由 `scripts/fetch-core.mjs` 从官方下载                    |
+| Core 仍需随应用运行    | 页面经 `<script src="pet://core/live2dcubismcore.min.js">` 引导（`src/renderer/index.html`） |
+| 模型可替换             | 资产扫描 + 形象清单机制（§7.3），换目录即换模型                                              |
 
 ---
 
@@ -272,16 +271,16 @@ Pixi Application.stage（WebGL 渲染）
 
 > ⚠️ 该分支缓存原始 `WebGLTexture` 并绕过 Pixi 的纹理绑定，会被 Pixi 8.15+ 的
 > `GCSystem` 在约 60s 后回收，导致模型消失。修复与原理见 §7.5 和
-> [live2d-texture-gc.md](live2d-texture-gc.md)。
+> [issues/0002-live2d-texture-gc.md](issues/0002-live2d-texture-gc.md)。
 
 ### 7.2 两种"躯体"，一个抽象
 
 `adapters/presentation/stage/stage-body.ts` 定义 `StageBody`（view / naturalHeight /
 perform / setSpeaking / lookAt / reactToTouch / destroy），两个实现：
 
-| 实现 | 文件 | 用途 |
-|---|---|---|
-| `Live2DBody` | `stage/live2d-body.ts` | 真模型：动作优先级、表情、口型包络、注视 |
+| 实现              | 文件                        | 用途                                           |
+| ----------------- | --------------------------- | ---------------------------------------------- |
+| `Live2DBody`      | `stage/live2d-body.ts`      | 真模型：动作优先级、表情、口型包络、注视       |
 | `PlaceholderBody` | `stage/placeholder-body.ts` | 占位史莱姆：Graphics 绘制 + 手写眨眼/呼吸/口型 |
 
 `PixiStage`（实现 `PetStage` 端口）负责加载、切换、摆放与降级。
@@ -310,12 +309,12 @@ Live2DModel.from() 失败 → 占位躯体 + 说明原因（catch 记录）
 
 `src/renderer/index.html` 的 CSP 之所以有几处放宽，各有硬需求：
 
-| CSP 项 | 为什么必须放宽 |
-|---|---|
-| `script-src 'self' pet:` | Core 脚本来自 `pet://` |
-| `worker-src 'self' blob:` | Pixi 用 blob worker 做贴图上传/解码 |
-| `style-src 'unsafe-inline'` | 设置页有内联样式 |
-| `connect-src ... blob:` | Pixi worker 通信 |
+| CSP 项                      | 为什么必须放宽                      |
+| --------------------------- | ----------------------------------- |
+| `script-src 'self' pet:`    | Core 脚本来自 `pet://`              |
+| `worker-src 'self' blob:`   | Pixi 用 blob worker 做贴图上传/解码 |
+| `style-src 'unsafe-inline'` | 设置页有内联样式                    |
+| `connect-src ... blob:`     | Pixi worker 通信                    |
 
 另外 Pixi v8 默认用 `new Function` 编译着色器，与 CSP 冲突；
 官方提供无 eval 实现：`import 'pixi.js/unsafe-eval'`（`pixi-stage.ts` 顶部，
@@ -340,14 +339,14 @@ Pixi 8.15+ 引入 `GCSystem`，默认 `gcActive: true`、`gcMaxUnusedTime: 60s`�
 ```ts
 app.init({
   // ...
-  gcActive: false, // 关闭 Pixi GPU 资源 GC，规避 Live2D 纹理被误收（见 docs/live2d-texture-gc.md）
-})
+  gcActive: false, // 关闭 Pixi GPU 资源 GC，规避 Live2D 纹理被误收（见 docs/issues/0002-live2d-texture-gc.md）
+});
 ```
 
 关闭 GC 后，本该由 GC 兜底的释放需要显式完成；本应用只有 Live2D 纹理会跨形象切换累积，
 因此 `adapters/presentation/stage/live2d-body.ts` 的 `destroy()` 改为
 `view.destroy({ texture: true, textureSource: true })`。完整证据链、备选方案与复现步骤见
-[live2d-texture-gc.md](live2d-texture-gc.md)。
+[issues/0002-live2d-texture-gc.md](issues/0002-live2d-texture-gc.md)。
 
 ---
 
@@ -355,13 +354,12 @@ app.init({
 
 ### 8.1 职责切分原理
 
-契约见 [brain-protocol.md](brain-protocol.md)，只有一句话：
 **心智管"说什么"，宠物管"怎么表现"。**
 
-| 关注点 | 归属 |
-|---|---|
+| 关注点                                             | 归属                 |
+| -------------------------------------------------- | -------------------- |
 | LLM 调用、提示词、记忆、多轮上下文、结构化输出解析 | 心智（独立后端项目） |
-| 文本流的逐字呈现、情绪/动作的具体翻译、口型、气泡 | 前端 |
+| 文本流的逐字呈现、情绪/动作的具体翻译、口型、气泡  | 前端                 |
 
 心智消息只有两类内容：**文本增量**（`chat.delta`）与 **语义指令**（`chat.directive{emotion}`）。
 类型定义：`contracts/wire-protocol.ts`（只有类型，无实现，主/渲染共用）。
@@ -407,7 +405,7 @@ remote 模式：直接连配置地址
 （`adapters/presentation/chat/dom-chat-surface.ts`）：
 
 ```ts
-const step = Math.max(1, Math.round((buffer.length - shown) / 6))  // 落后越多吐越快
+const step = Math.max(1, Math.round((buffer.length - shown) / 6)); // 落后越多吐越快
 ```
 
 效果：网络抖动被视觉上平滑掉，用户看到的是匀速但会"加速追赶"的打字感。
@@ -424,10 +422,10 @@ const step = Math.max(1, Math.round((buffer.length - shown) / 6))  // 落后越�
 
 所有持久化的位置都是**相对值**，与分辨率/显示器无关（`domain/pose.ts`）：
 
-| 字段 | 含义 | 范围 |
-|---|---|---|
+| 字段      | 含义                             | 范围                 |
+| --------- | -------------------------------- | -------------------- |
 | `x` / `y` | 模型锚点（中心）相对工作区的比例 | 0.05~0.95 / 0.1~0.95 |
-| `scale` | 模型显示高度 ÷ 屏幕高度 | 0.15 ~ 1.4 |
+| `scale`   | 模型显示高度 ÷ 屏幕高度          | 0.15 ~ 1.4           |
 
 换算（正向）在 `adapters/presentation/stage/pixi-stage.ts` 的 `place()`：
 
@@ -484,16 +482,16 @@ position = (画布宽 × pose.x, 画布高 × pose.y)
 
 `contracts/ipc.ts` 集中定义**全部 12 个通道名与载荷类型**：
 
-| 通道 | 方向/形式 | 用途 |
-|---|---|---|
-| `config:get` / `config:set` | invoke | 读/写应用配置（补丁深合并） |
-| `models:list` | invoke | 资产清单（Core 是否就位 + 模型列表） |
-| `brain:send` | send | 把主人的话交给心智（主进程截断 2000 字符） |
-| `window:set-ignore-mouse` | send | 捕获/放行鼠标（带 sender 校验） |
-| `app:quit` / `app:open-settings` | send | 退出 / 打开设置窗 |
-| `brain:status` / `brain:message` | 事件 | 心智状态与回话 |
-| `config:changed` | 事件 | 配置被任何入口改动 |
-| `ui:toggle-input` / `ui:reset-pose` | 事件 | 托盘菜单动作 |
+| 通道                                | 方向/形式 | 用途                                       |
+| ----------------------------------- | --------- | ------------------------------------------ |
+| `config:get` / `config:set`         | invoke    | 读/写应用配置（补丁深合并）                |
+| `models:list`                       | invoke    | 资产清单（Core 是否就位 + 模型列表）       |
+| `brain:send`                        | send      | 把主人的话交给心智（主进程截断 2000 字符） |
+| `window:set-ignore-mouse`           | send      | 捕获/放行鼠标（带 sender 校验）            |
+| `app:quit` / `app:open-settings`    | send      | 退出 / 打开设置窗                          |
+| `brain:status` / `brain:message`    | 事件      | 心智状态与回话                             |
+| `config:changed`                    | 事件      | 配置被任何入口改动                         |
+| `ui:toggle-input` / `ui:reset-pose` | 事件      | 托盘菜单动作                               |
 
 **为什么集中**：这些字符串以前散落在主进程、preload、渲染进程共 12+ 处，
 改一个名字要全局搜索；现在两端共用同一常量与类型，编译器负责检查。
@@ -573,14 +571,14 @@ app/pet-runtime.ts                                  Pet.say(文本)
 
 ### 12.3 诊断层（白屏调查留下的实验工具箱）
 
-| 工具 | 用途 | 入口 |
-|---|---|---|
-| 双路截图对比 | 页面 vs 屏幕，多时间点 | `PET_DIAG=1` + `scripts/diag-render.mjs` |
-| 场景矩阵 | 隔离"内容类型"变量 | `PET_DIAG_SCENARIO=` + `scripts/analyze-scenario.mjs` |
-| 最小探针 | 无 Pixi 的透明窗，判定环境级 vs 应用级 | `PET_DIAG=1 PET_DIAG_MINIMAL=1` |
-| GPU 探针 | 延迟查询 GPU/合成状态 | `npx electron scripts/gpu-probe.cjs` |
-| 图像分析 | ASCII 缩略图 / 区域取样 | `scripts/inspect-png.mjs`、`probe-region.mjs` |
-| 参数注入 | 任意 Chromium 开关 / 渲染参数 A/B | `PET_SWITCH=`、`PET_RENDER_QUERY=`、`?premul=1` |
+| 工具         | 用途                                   | 入口                                                  |
+| ------------ | -------------------------------------- | ----------------------------------------------------- |
+| 双路截图对比 | 页面 vs 屏幕，多时间点                 | `PET_DIAG=1` + `scripts/diag-render.mjs`              |
+| 场景矩阵     | 隔离"内容类型"变量                     | `PET_DIAG_SCENARIO=` + `scripts/analyze-scenario.mjs` |
+| 最小探针     | 无 Pixi 的透明窗，判定环境级 vs 应用级 | `PET_DIAG=1 PET_DIAG_MINIMAL=1`                       |
+| GPU 探针     | 延迟查询 GPU/合成状态                  | `npx electron scripts/gpu-probe.cjs`                  |
+| 图像分析     | ASCII 缩略图 / 区域取样                | `scripts/inspect-png.mjs`、`probe-region.mjs`         |
+| 参数注入     | 任意 Chromium 开关 / 渲染参数 A/B      | `PET_SWITCH=`、`PET_RENDER_QUERY=`、`?premul=1`       |
 
 诊断代码是**旁路**：`adapters/shell/diagnostics.ts`（主进程侧）与
 `adapters/presentation/diagnostics.ts`（渲染侧），由组装根按环境变量装配，不进领域。
@@ -633,7 +631,7 @@ src/
 resources/                     core（不入库）/ models（可替换）/ icon.png
 tests/                         领域与运行时测试 + 纯净性守护
 scripts/                       fetch-core / fetch-models / gen-icon / smoke / 诊断系列
-docs/                          本文件 / domain / brain-protocol / white-screen-investigation / live2d-texture-gc
+docs/                          文档地图（README）/ domain / architecture / conventions / brain-protocol / issues
 ```
 
 ---
@@ -656,13 +654,13 @@ alias: { '/entries': resolve(__dirname, 'src/entries'), '/adapters': resolve(__d
 
 **环境变量一览**（都在 `adapters/shell/` 与 `entries/main.ts` 里读取）：
 
-| 变量 | 用途 |
-|---|---|
-| `PET_USER_DATA` | 改数据目录：自检实例与正在运行的实例互不干扰（也是冒烟隔离的基础） |
-| `PET_SMOKE=1` | 启动自检流程（点击/拖动/对话 + 截图），见 §12.2 |
-| `PET_DIAG=1` / `PET_DIAG_MINIMAL` / `PET_DIAG_SCENARIO` / `PET_DIAG_NOGPU` | 白屏诊断工具箱，见 §12.3 |
-| `PET_SWITCH=<a;b>` / `PET_NOGPU=1` | 注入 Chromium 开关 / 关闭硬件加速（A/B 实验） |
-| `PET_RENDER_QUERY=<aa=0&premul=1>` | 从主进程向页面注入渲染参数 |
+| 变量                                                                       | 用途                                                               |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `PET_USER_DATA`                                                            | 改数据目录：自检实例与正在运行的实例互不干扰（也是冒烟隔离的基础） |
+| `PET_SMOKE=1`                                                              | 启动自检流程（点击/拖动/对话 + 截图），见 §12.2                    |
+| `PET_DIAG=1` / `PET_DIAG_MINIMAL` / `PET_DIAG_SCENARIO` / `PET_DIAG_NOGPU` | 白屏诊断工具箱，见 §12.3                                           |
+| `PET_SWITCH=<a;b>` / `PET_NOGPU=1`                                         | 注入 Chromium 开关 / 关闭硬件加速（A/B 实验）                      |
+| `PET_RENDER_QUERY=<aa=0&premul=1>`                                         | 从主进程向页面注入渲染参数                                         |
 
 ---
 
@@ -677,18 +675,18 @@ alias: { '/entries': resolve(__dirname, 'src/entries'), '/adapters': resolve(__d
 
 **已修复的坑（改动前先读，不要回退）**
 
-- **透明窗白屏**：`premultipliedAlpha` 必须为 `false`（§5、[white-screen-investigation.md](white-screen-investigation.md)）。
+- **透明窗白屏**：`premultipliedAlpha` 必须为 `false`（§5、[issues/0001-white-screen.md](issues/0001-white-screen.md)）。
 - **模型静置后消失**：Pixi 8.15+ 的 `GCSystem` 会回收 Live2D 直接绑定的纹理；
-  必须保持 `gcActive: false`，且换形象时显式销毁纹理（§7.5、[live2d-texture-gc.md](live2d-texture-gc.md)）。
+  必须保持 `gcActive: false`，且换形象时显式销毁纹理（§7.5、[issues/0002-live2d-texture-gc.md](issues/0002-live2d-texture-gc.md)）。
 
 **扩展点（按接入成本排序）**
 
-| 想做的事 | 改动位置 |
-|---|---|
-| TTS 出声 | `stage/live2d-body.ts` 的口型包络换成音频驱动；消费 `tts.chunk`（协议已预留） |
-| 新情绪 | `domain/emotion.ts` 加标签 + 各模型 `pet.model.json` 加映射（向后兼容） |
-| 新形象 | 丢进 `resources/models/<dir>/` + 一份 `pet.model.json`（托盘自动出现） |
-| 待机小动作（自主行为） | `domain/pet.ts` 加行为（如 `doze()`）+ 事件；`pet-runtime` 接一个节奏器 |
-| 亲密度/成长 | `domain/pet.ts` 加状态与规则；累计数据可放偏好或心智侧 |
-| 多显示器漫游 | `domain/ports.ts` 的视口扩展为多屏模型；`adapters/shell/pet-window.ts` 跟随目标屏 |
-| 复杂设置 UI | 换 `adapters/presentation/settings-page.ts`；IPC 契约（§10.2）不变 |
+| 想做的事               | 改动位置                                                                          |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| TTS 出声               | `stage/live2d-body.ts` 的口型包络换成音频驱动；消费 `tts.chunk`（协议已预留）     |
+| 新情绪                 | `domain/emotion.ts` 加标签 + 各模型 `pet.model.json` 加映射（向后兼容）           |
+| 新形象                 | 丢进 `resources/models/<dir>/` + 一份 `pet.model.json`（托盘自动出现）            |
+| 待机小动作（自主行为） | `domain/pet.ts` 加行为（如 `doze()`）+ 事件；`pet-runtime` 接一个节奏器           |
+| 亲密度/成长            | `domain/pet.ts` 加状态与规则；累计数据可放偏好或心智侧                            |
+| 多显示器漫游           | `domain/ports.ts` 的视口扩展为多屏模型；`adapters/shell/pet-window.ts` 跟随目标屏 |
+| 复杂设置 UI            | 换 `adapters/presentation/settings-page.ts`；IPC 契约（§10.2）不变                |

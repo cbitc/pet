@@ -3,8 +3,8 @@
  *
  * 技术细节：Pixi 应用初始化、CSP 下的着色器处理、实体摆放与缩放换算、
  * 命中范围上报。两个“坑”的修复参数保持醒目（见 PixiStage.create）：
- *   1) premultipliedAlpha=false —— 透明窗白屏（docs/white-screen-investigation.md）
- *   2) gcActive=false —— Live2D 纹理被 GC 回收后模型消失（docs/live2d-texture-gc.md）
+ *   1) premultipliedAlpha=false —— 透明窗白屏（docs/issues/0001-white-screen.md）
+ *   2) gcActive=false —— Live2D 纹理被 GC 回收后模型消失（docs/issues/0002-live2d-texture-gc.md）
  */
 
 import 'pixi.js/unsafe-eval'
@@ -18,7 +18,7 @@ export interface StageOptions {
   canvas: HTMLCanvasElement
   /** 形象 → 模型入口 URL（由组装根基于 pet:// 协议注入） */
   modelUrl: (appearanceId: string) => string | null
-  /** 是否预乘 alpha；默认 false（本机环境的白屏规避，见 docs/white-screen-investigation.md） */
+  /** 是否预乘 alpha；默认 false（本机环境的白屏规避，见 docs/issues/0001-white-screen.md） */
   premultipliedAlpha?: boolean
   /** 渲染后端固定比例，1 = 与 CSS 像素 1:1（与命中/坐标换算的简化绑定） */
   resolution?: number
@@ -44,7 +44,7 @@ export class PixiStage implements PetStage {
       backgroundAlpha: 0,
       preference: 'webgl',
       // 重要：本机显卡驱动栈下预乘 alpha 会让透明窗整窗变白；
-      // 保持 false，排障时可用 ?premul=1 复现（docs/white-screen-investigation.md）
+      // 保持 false，排障时可用 ?premul=1 复现（docs/issues/0001-white-screen.md）
       premultipliedAlpha: options.premultipliedAlpha ?? false,
       resolution: options.resolution ?? 1,
       autoDensity: true,
@@ -54,7 +54,7 @@ export class PixiStage implements PetStage {
       // 旧的 TextureGCSystem 有效（TextureSource 已无 touched 字段）。
       // 结果：模型纹理会在大约 60s 后被 deleteTexture —— 宠物消失但仍可命中点击。
       // 关闭 GC 规避；形象切换时由 Live2DBody.destroy 显式销毁纹理，避免泄漏。
-      // 详见 docs/live2d-texture-gc.md
+      // 详见 docs/issues/0002-live2d-texture-gc.md
       gcActive: false
     })
     return new PixiStage(app, options)
@@ -171,7 +171,7 @@ export class PixiStage implements PetStage {
 
   /**
    * 仅供白屏排查使用：按诊断模式准备内容（对应 ?stage=none|placeholder|load，
-   * 见 docs/white-screen-investigation.md 的内容隔离实验）。
+   * 见 docs/issues/0001-white-screen.md 的内容隔离实验）。
    */
   async prepareForDiagnostics(
     mode: 'none' | 'placeholder' | 'load',

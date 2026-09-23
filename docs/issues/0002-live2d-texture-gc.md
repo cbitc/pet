@@ -1,5 +1,7 @@
 # Live2D 模型静置后消失（纹理被 GC 回收）排查记录
 
+> 状态：已关闭（修复已落地） · 类型：事故排查 · 日期：2026-09-23 · 关联：[0001](0001-white-screen.md)
+
 ## 结论（TL;DR）
 
 **PixiJS 8.15+ 新增的 `GCSystem` 会把 Live2D 的模型纹理当作「长期未使用」在约 60 秒后
@@ -15,7 +17,7 @@ GC 的 `texture.source.touched = ...` 只对旧的 `TextureGCSystem` 有效，�
 - 宠物正常出现、可交互；**静置约 1 分钟后画面里的模型消失**（画布恢复全透明）。
 - 消失后**仍然可以点中**：弹出输入条、能拖动（命中/坐标都在 CPU 侧，不依赖 GPU）。
 - 宿主进程、DOM、IPC、心智连接全部正常；`webglcontextlost` 也没有触发。
-- 不是白屏（那是另一条问题路径，见 [white-screen-investigation.md](white-screen-investigation.md)）。
+- 不是白屏（那是另一条问题路径，见 [0001-white-screen.md](0001-white-screen.md)）。
 
 ## 根因链（`文件:行号` 级）
 
@@ -85,6 +87,6 @@ this.view.destroy({ texture: true, textureSource: true })
 
 ## 环境备注
 
-该现象与 [white-screen-investigation.md](white-screen-investigation.md) 的预乘 alpha 白屏是
+该现象与 [0001-white-screen.md](0001-white-screen.md) 的预乘 alpha 白屏是
 **两条独立路径**：白屏发生在「原生合成」环节，本问题发生在「GPU 资源生命周期」。
 两者都只在引入 Live2D 内容后暴露，但复现时间与画面特征完全不同。

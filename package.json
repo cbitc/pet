@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "test": "vitest run",
     "test:watch": "vitest",
+    "docs:check": "node scripts/check-docs.mjs",
     "fetch:assets": "node scripts/fetch-core.mjs && node scripts/fetch-models.mjs",
     "gen:icon": "node scripts/gen-icon.mjs",
     "smoke": "node scripts/smoke.mjs",

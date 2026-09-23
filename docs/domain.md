@@ -2,7 +2,7 @@
 
 > 这份文档是「业务」的说明书：宠物是什么、它有什么规矩、它需要世界提供什么。
 > 与实现无关——`src/domain/` 里的代码就是它的直接翻译（读代码前先读这份，或反过来）。
-> 技术实现见 [architecture.md](architecture.md)，前后端协议见 [brain-protocol.md](brain-protocol.md)。
+> 技术实现见 [architecture.md](architecture.md)。
 
 ---
 
@@ -22,30 +22,30 @@
 
 代码里的命名与这份表一一对应。**改代码时请沿用这些词**，不要引入同义词。
 
-| 术语 | 代码 | 含义 |
-|---|---|---|
-| 宠物 | `Pet` | 主角本身。聚合根：它知道自己的一切，行为都从它出发 |
-| 现身 | `Pet.appear()` / `PetAppeared` | 启动后出现在桌面上 |
-| 栖息姿态 | `Pose` | 栖在哪里、多大。归一化坐标（0..1），与分辨率无关 |
-| 挪窝 | `Pet.moveTo()` / `PetMoved` | 被主人拖动后换位置 |
-| 落定 | `PetSettled` | 松手了，这个位置值得记住 |
-| 被触摸 | `Pet.tap()` / `PetTapped` | 被主人点了一下 |
-| 情绪 | `Emotion` | 心情的语义标签：neutral / happy / sad / angry / surprised |
-| 表演 | `Performance` | 某个情绪下怎么演：哪个表情、哪个动作 |
-| 形象 | `Appearance` | 宠物身上的一整套外观（模型 + 表演表），如 Haru |
-| 换装 | `Pet.changeAppearance()` | 换一套形象 |
-| 说话 | `Pet.isSpeaking` | 正在和主人对话（口型应当开合） |
-| 降级 | `Degraded` | 形象资产缺失/损坏时，以占位形态出现并说明原因 |
-| 对话轮次 | `Turn` | 一问一答的生命周期：等待回复 → 流式 → 结束 |
-| 心智 | `BrainChannel` | 宠物的"脑子"（后端 LLM 服务），宠物向它说、听它答 |
-| 身份 | `PetIdentity` | 宠物向心智自我介绍：会话身份 + 性格 |
-| 偏好 | `Preferences` | 主人对宠物的设定（形象、位置、性格、关系身份） |
-| 桌面 | `DeskSurface` | 宠物与主人指针、视口之间的边界（含"不打扰"的实现） |
-| 形象舞台 | `PetStage` | 让宠物有形的地方 |
-| 对话界面 | `ChatSurface` | 气泡与输入框 |
-| 手势 | `DeskGesture` | 已识别的主人意图：悬停 / 点击 / 拖动 / 离开 |
-| 捕获指针 | `setPointerCapture` | 宠物接住鼠标（不放行点击）；反过来就是"放行" |
-| 界面部件 | `ui`（`PointerTarget`） | 气泡、输入框等属于宠物的界面，也是命中目标 |
+| 术语     | 代码                           | 含义                                                      |
+| -------- | ------------------------------ | --------------------------------------------------------- |
+| 宠物     | `Pet`                          | 主角本身。聚合根：它知道自己的一切，行为都从它出发        |
+| 现身     | `Pet.appear()` / `PetAppeared` | 启动后出现在桌面上                                        |
+| 栖息姿态 | `Pose`                         | 栖在哪里、多大。归一化坐标（0..1），与分辨率无关          |
+| 挪窝     | `Pet.moveTo()` / `PetMoved`    | 被主人拖动后换位置                                        |
+| 落定     | `PetSettled`                   | 松手了，这个位置值得记住                                  |
+| 被触摸   | `Pet.tap()` / `PetTapped`      | 被主人点了一下                                            |
+| 情绪     | `Emotion`                      | 心情的语义标签：neutral / happy / sad / angry / surprised |
+| 表演     | `Performance`                  | 某个情绪下怎么演：哪个表情、哪个动作                      |
+| 形象     | `Appearance`                   | 宠物身上的一整套外观（模型 + 表演表），如 Haru            |
+| 换装     | `Pet.changeAppearance()`       | 换一套形象                                                |
+| 说话     | `Pet.isSpeaking`               | 正在和主人对话（口型应当开合）                            |
+| 降级     | `Degraded`                     | 形象资产缺失/损坏时，以占位形态出现并说明原因             |
+| 对话轮次 | `Turn`                         | 一问一答的生命周期：等待回复 → 流式 → 结束                |
+| 心智     | `BrainChannel`                 | 宠物的"脑子"（后端 LLM 服务），宠物向它说、听它答         |
+| 身份     | `PetIdentity`                  | 宠物向心智自我介绍：会话身份 + 性格                       |
+| 偏好     | `Preferences`                  | 主人对宠物的设定（形象、位置、性格、关系身份）            |
+| 桌面     | `DeskSurface`                  | 宠物与主人指针、视口之间的边界（含"不打扰"的实现）        |
+| 形象舞台 | `PetStage`                     | 让宠物有形的地方                                          |
+| 对话界面 | `ChatSurface`                  | 气泡与输入框                                              |
+| 手势     | `DeskGesture`                  | 已识别的主人意图：悬停 / 点击 / 拖动 / 离开               |
+| 捕获指针 | `setPointerCapture`            | 宠物接住鼠标（不放行点击）；反过来就是"放行"              |
+| 界面部件 | `ui`（`PointerTarget`）        | 气泡、输入框等属于宠物的界面，也是命中目标                |
 
 > 词汇对照：文档早期用过的说法「穿透 / 打字机 / 角标」等，在代码中的落点是
 > `setPointerCapture`（"不打扰"）、`ReplySink.append`（流式写入）、`ChatSurface.showStatus`。
@@ -108,22 +108,22 @@
 
 这些规则写在 `src/domain/` 里，由 `tests/` 守护：
 
-| # | 规矩 | 出处 |
-|---|---|---|
-| 1 | 现身只发生一次 | `pet.test.ts` |
-| 2 | 一轮未结束，主人的新话被忽略（宠物一次只想清楚一件事） | `pet.say` |
-| 3 | 空话不理会 | `pet.say` |
-| 4 | 没有进行中的对话时，迟到的回复片段不会有意料之外的动作 | `pet.receiveReplyChunk` |
-| 5 | 同一心情重复表达也要再演一次（`express` 总是产出事件） | `pet.express` |
-| 6 | 挪窝范围受限：中心不越界、体型在合理区间 | `pose.POSE_BOUNDS` |
-| 7 | 挪到相同位置不会有任何动静（不产生无意义事件） | `pose.isSamePose` |
-| 8 | 只有拖动中松手才算「落定」 | `pet.endDrag` |
-| 9 | 被摸之后不再算作正在挪窝 | `pet.tap` |
-| 10 | 不认识的情绪标签收拢为 neutral（不把未知值透传下去） | `emotion.toEmotion` |
-| 11 | 形象清单里的未知情绪、空绑定、坏值一律丢弃 | `contracts/schemas.parseAppearanceSpec` |
-| 12 | 偏好里的坏数据回退到默认值，绝不导致崩溃 | `contracts/schemas.parsePose` / `preferencesFromConfig` |
-| 13 | 找不到偏好指定的形象时穿第一件可用的；一件都没有则降级并提示 | `pet-runtime.wearAppearance` |
-| 14 | 降级提示会反复提醒，直到换上像样的形象 | `pet-runtime.repeatNotice` |
+| #   | 规矩                                                         | 出处                                                    |
+| --- | ------------------------------------------------------------ | ------------------------------------------------------- |
+| 1   | 现身只发生一次                                               | `pet.test.ts`                                           |
+| 2   | 一轮未结束，主人的新话被忽略（宠物一次只想清楚一件事）       | `pet.say`                                               |
+| 3   | 空话不理会                                                   | `pet.say`                                               |
+| 4   | 没有进行中的对话时，迟到的回复片段不会有意料之外的动作       | `pet.receiveReplyChunk`                                 |
+| 5   | 同一心情重复表达也要再演一次（`express` 总是产出事件）       | `pet.express`                                           |
+| 6   | 挪窝范围受限：中心不越界、体型在合理区间                     | `pose.POSE_BOUNDS`                                      |
+| 7   | 挪到相同位置不会有任何动静（不产生无意义事件）               | `pose.isSamePose`                                       |
+| 8   | 只有拖动中松手才算「落定」                                   | `pet.endDrag`                                           |
+| 9   | 被摸之后不再算作正在挪窝                                     | `pet.tap`                                               |
+| 10  | 不认识的情绪标签收拢为 neutral（不把未知值透传下去）         | `emotion.toEmotion`                                     |
+| 11  | 形象清单里的未知情绪、空绑定、坏值一律丢弃                   | `contracts/schemas.parseAppearanceSpec`                 |
+| 12  | 偏好里的坏数据回退到默认值，绝不导致崩溃                     | `contracts/schemas.parsePose` / `preferencesFromConfig` |
+| 13  | 找不到偏好指定的形象时穿第一件可用的；一件都没有则降级并提示 | `pet-runtime.wearAppearance`                            |
+| 14  | 降级提示会反复提醒，直到换上像样的形象                       | `pet-runtime.repeatNotice`                              |
 
 ---
 
@@ -173,12 +173,12 @@ WebSocket 地址与重连、模型文件格式、消息序列化、磁盘路径�
 
 **v1 之外（留了位置，未实现）**：
 
-| 想做的事 | 落点 |
-|---|---|
+| 想做的事                                   | 落点                                                       |
+| ------------------------------------------ | ---------------------------------------------------------- |
 | 自主行为（待机小动作、打瞌睡、在桌面溜达） | `Pet` 增加 `wander()` / `doze()` 等行为 + 舞台增加播放能力 |
-| 成长（亲密度、心情随互动变化） | `Pet` 内部状态 + 新事件；或在心智侧累计 |
-| 语音（听得见、说得出） | `BrainChannel` 增加音频消息；`PetStage` 增加口型驱动数据源 |
-| 多显示器漫游 | `DeskSurface` 的视口扩展为多屏模型 |
+| 成长（亲密度、心情随互动变化）             | `Pet` 内部状态 + 新事件；或在心智侧累计                    |
+| 语音（听得见、说得出）                     | `BrainChannel` 增加音频消息；`PetStage` 增加口型驱动数据源 |
+| 多显示器漫游                               | `DeskSurface` 的视口扩展为多屏模型                         |
 
 **明确不做**（避免过度设计）：不做领域事件总线、不做仓储抽象、不做 DI 容器、
 不为想象中的未来建端口——端口只保留当前有真实实现的能力。
@@ -187,11 +187,14 @@ WebSocket 地址与重连、模型文件格式、消息序列化、磁盘路径�
 
 ## 8. 阅读路径
 
-| 问题 | 读什么 |
-|---|---|
-| 宠物能做什么、有什么规矩？ | `src/domain/pet.ts`、`pose.ts`（零技术细节） |
-| 宠物需要世界提供什么？ | `src/domain/ports.ts`（本文第 5 节） |
-| 这些规矩有测试吗？ | `tests/domain/*.test.ts`（含纯净性守护） |
-| 宠物和外界怎么协作？ | `src/app/pet-runtime.ts` |
-| 这些端口在本项目里怎么实现？ | `src/adapters/`（见 architecture.md） |
+| 问题                         | 读什么                                       |
+| ---------------------------- | -------------------------------------------- |
+| 宠物能做什么、有什么规矩？   | `src/domain/pet.ts`、`pose.ts`（零技术细节） |
+| 宠物需要世界提供什么？       | `src/domain/ports.ts`（本文第 5 节）         |
+| 这些规矩有测试吗？           | `tests/domain/*.test.ts`（含纯净性守护）     |
+| 宠物和外界怎么协作？         | `src/app/pet-runtime.ts`                     |
+| 这些端口在本项目里怎么实现？ | `src/adapters/`（见 architecture.md）        |
+
+```
+
 ```

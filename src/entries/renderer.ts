@@ -36,7 +36,7 @@ async function main(): Promise<void> {
   const stage = await PixiStage.create({
     canvas,
     modelUrl: (id) => urlById.get(id) ?? null,
-    // 排障开关：?premul=1 可复现透明窗白屏（详见 docs/white-screen-investigation.md）
+    // 排障开关：?premul=1 可复现透明窗白屏（详见 docs/issues/0001-white-screen.md）
     premultipliedAlpha: params.get('premul') === '1'
   })
   stage.setCatalog(catalog)

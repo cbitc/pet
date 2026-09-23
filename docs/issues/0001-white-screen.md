@@ -1,10 +1,14 @@
 # 透明窗白屏问题排查记录
 
+> 状态：已关闭（修复已落地） · 类型：事故排查 · 日期：2026-09-23 · 关联：[0002](0002-live2d-texture-gc.md)
+>
+> 两条问题都在引入 Live2D 内容后暴露，但发生性完全不同：本文是「原生合成」，0002 是「GPU 资源生命周期」。
+
 ## 结论（TL;DR）
 
 Windows + Electron 44 + 本机显卡驱动栈环境下，Pixi 默认的 **`premultipliedAlpha: true`** 会让
 WebGL 画布在合成到**透明窗口**时把整窗渲染成不透明白色。修复：初始化为 `premultipliedAlpha: false`
-（见 `src/renderer/src/app.ts` 的 `app.init`）。
+（见 `src/adapters/presentation/stage/pixi-stage.ts` 的 `PixiStage.create`）。
 
 ## 症状
 
