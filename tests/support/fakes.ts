@@ -29,6 +29,7 @@ import {
 } from '../../src/domain'
 import { createPetRuntime, type PetRuntime } from '../../src/app/pet-runtime'
 import { parseAppearanceSpec } from '../../src/contracts/schemas'
+import { rectContains } from '../../src/shared/geometry'
 
 export function appearance(id: string, performances: AppearanceSpec['performances'] = {}): Appearance {
   return parseAppearanceSpec({ id, displayName: id, performances })
@@ -252,8 +253,7 @@ export class FakeChat implements ChatSurface {
 
   isPointerOverUi(at: ScreenPoint): boolean {
     const zone = this.uiZone
-    if (!zone) return false
-    return at.x >= zone.x && at.x <= zone.x + zone.width && at.y >= zone.y && at.y <= zone.y + zone.height
+    return zone ? rectContains(at, zone) : false
   }
 
   placeNear(rect: Rect): void {

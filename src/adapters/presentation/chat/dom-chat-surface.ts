@@ -5,7 +5,7 @@
  * 领域只知道「显示主人的话」「开始一段回复」「说一句」「提示」「跟随宠物」。
  */
 
-import { clamp, rectContains } from '../../../domain'
+import { clamp, rectContains } from '../../../shared/geometry'
 import type {
   BrainStatus,
   ChatSurface,

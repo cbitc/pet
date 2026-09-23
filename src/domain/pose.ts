@@ -7,7 +7,7 @@
  * 而不是散落在拖拽代码里。
  */
 
-import { clamp } from './geometry'
+import { clamp } from '../shared/geometry'
 
 export interface Pose {
   /** 水平位置（占桌面宽度比例，锚点为宠物中心） */

@@ -12,7 +12,7 @@
 
 import { match } from 'ts-pattern'
 import { isSamePose, movePose } from '../domain/pose'
-import { rectContains } from '../domain/geometry'
+import { rectContains } from '../shared/geometry'
 import { Pet } from '../domain/pet'
 import type { Preferences } from '../domain/preferences'
 import { toEmotion } from '../domain/emotion'

@@ -17,6 +17,7 @@
 | 想了解 | 读什么 | 特征 |
 |---|---|---|
 | 宠物能做什么、有什么规矩 | `src/domain/`（8 个文件，约 700 行） | 零技术依赖：不 import electron / pixi / DOM / ws，有测试守护 |
+| 与业务无关的通用原语 | `src/shared/` | 最底层：不 import 任何模块（clamp / 命中判定），供各层共用 |
 | 宠物与外界怎么协作 | `src/app/pet-runtime.ts` | 只对着端口说话，仍然零技术细节 |
 | 宠物需要世界提供什么 | `src/domain/ports.ts` | 六个端口的形状 = 业务需求清单 |
 | 具体怎么实现（Electron/Pixi/WS） | `src/adapters/` | 全部技术细节的家 |
@@ -52,7 +53,7 @@
 **结构原则**：
 
 1. **业务与技术分层**：领域只讲宠物；技术只在适配器里。改行为去 `domain/`，改实现去 `adapters/`。
-2. **依赖单向**：适配器依赖领域，领域绝不反向依赖（`tests/domain/purity.test.ts` 机器守护）。
+2. **依赖单向且无环**：`shared/` 在最底（不依赖任何模块）→ `domain/` 只依赖自己与 shared → `app/adapters` 依赖领域；领域绝不反向依赖外层（`tests/domain/purity.test.ts` 机器守护）。
 3. **能力最小化**：渲染进程无 Node、无直连网络；所有危险能力经 preload 白名单收口。
 4. **网络唯一出口**：只有主进程碰网络，渲染进程连"心智地址"都不知道。
 5. **降级不崩溃**：缺 Core、缺模型、模型损坏，都有兜底路径（占位躯体）。
@@ -543,10 +544,12 @@ app/pet-runtime.ts                                  Pet.say(文本)
 
 - `npm run typecheck`：node 侧（contracts+domain+app+shell+brain）与 web 侧
   （contracts+domain+app+presentation+bridge+entries）分别严格检查。
-- `npm test`：57 个用例。
+- `npm test`：66 个用例。
   - `tests/domain/*.test.ts`：宠物规则（现身只一次、一轮未结束不接新话、姿态夹紧…）
-  - `tests/domain/purity.test.ts`：**领域纯净性守护**——扫描 `src/domain/` 的 import，
-    一旦出现 electron/pixi/DOM/ws/node 即失败
+  - `tests/domain/purity.test.ts`：**分层纯净性守护**——`src/domain/` 只允许领域内部与
+    `../shared/`（出现 electron/pixi/DOM/ws/node 或反向依赖外层即失败）；
+    并要求 `src/shared/` 零 import
+  - `tests/contracts/schemas.test.ts`：zod 边界解析（坏值回退、越界夹紧、未知字段丢弃…）
   - `tests/app/pet-runtime.test.ts`：运行时行为（挪窝防抖落盘、降级反复提醒、
     偏好变更 → 宠物响应、命中检测优先级…），用假端口驱动，不需要 Electron
 
@@ -588,6 +591,7 @@ app/pet-runtime.ts                                  Pet.say(文本)
 
 ```
 src/
+├─ shared/                     通用原语（零依赖最底层：clamp / 命中判定）
 ├─ domain/                     领域（纯逻辑，有纯净性测试守护）
 │  ├─ pet.ts                   宠物聚合根：行为 → 领域事件
 │  ├─ ports.ts                 六个端口 = 业务需求清单

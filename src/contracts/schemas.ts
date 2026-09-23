@@ -10,7 +10,7 @@
 import { z } from 'zod'
 import type { Appearance, Performance } from '../domain/appearance'
 import { isEmotion, type Emotion } from '../domain/emotion'
-import { clamp } from '../domain/geometry'
+import { clamp } from '../shared/geometry'
 import { DEFAULT_POSE, POSE_BOUNDS, type Pose } from '../domain/pose'
 import { DEFAULT_PREFERENCES, type Preferences } from '../domain/preferences'
 
