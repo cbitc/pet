@@ -19,6 +19,8 @@
     "src/shared/**/*.ts",
     "src/domain/**/*.ts",
     "src/app/**/*.ts",
+    "src/adapters/**/*.ts",
+    "src/entries/**/*.ts",
     "src/renderer/src/**/*.ts",
     "src/renderer/*.html"
   ]

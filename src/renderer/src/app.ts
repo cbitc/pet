@@ -9,7 +9,7 @@ import { BubbleLayer } from './chat/bubble'
 import { ChatInput } from './chat/input'
 import { ChatController } from './chat/controller'
 import { setupInteraction } from './interaction'
-import { logStyleSnapshot, rlog, watchCanvasContext } from './diagnostics'
+import { logStyleSnapshot, rlog, watchCanvasContext } from '../../adapters/presentation/diagnostics'
 
 const bridge = window.pet
 

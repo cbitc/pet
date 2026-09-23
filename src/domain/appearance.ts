@@ -33,8 +33,9 @@ export interface Appearance {
 export interface AppearanceSpec {
   readonly id: string
   readonly displayName?: string
+  /** 允许 undefined（清单里的 Partial 结构天然如此），非法项在 defineAppearance 中丢弃 */
   readonly performances?: Readonly<
-    Record<string, { readonly expression?: string | null; readonly motion?: string }>
+    Record<string, { readonly expression?: string | null; readonly motion?: string } | undefined>
   >
   readonly tapMotion?: string
 }
