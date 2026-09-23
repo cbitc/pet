@@ -4,6 +4,9 @@
 LLM 大脑是独立的后续项目，双方以 [docs/brain-protocol.md](docs/brain-protocol.md) 的 WebSocket 协议为契约；
 后端未就绪时使用内置 **Mock 大脑**（真实 WS 回环）全链路联调。
 
+> **先读什么**：想知道这个桌宠「是什么、有什么规矩」——读 [docs/domain.md](docs/domain.md)（领域说明书）；
+> 想知道「技术怎么落地」——读 [docs/architecture.md](docs/architecture.md)。
+
 ## 技术栈
 
 | 层 | 选型 |
@@ -11,8 +14,10 @@ LLM 大脑是独立的后续项目，双方以 [docs/brain-protocol.md](docs/bra
 | 壳 | Electron（透明无边框置顶窗 + 托盘 + 动态点击穿透） |
 | 构建 | electron-vite + TypeScript（main / preload / renderer 三段式） |
 | 渲染 | PixiJS v8 + `@jannchie/pixi-live2d-display`（Cubism 4，内置口型同步） |
-| 大脑接入 | 主进程 BrainGateway（WebSocket + 指数退避重连），渲染进程零网络 |
+| 大脑接入 | 主进程心智连接（WebSocket + 指数退避重连），渲染进程零网络 |
 | UI | 纯 TS + DOM（聊天气泡 / 输入条 / 设置页），无前端框架 |
+| 结构 | 领域模型（纯逻辑，零技术依赖）+ 端口适配器 + 组装根 |
+| 测试 | vitest（领域与运行时，57 用例）+ 三层冒烟（见「验证」） |
 
 ## 快速开始
 
@@ -33,10 +38,11 @@ npm run dev            # 启动开发（HMR）
 | 命令 | 作用 |
 |---|---|
 | `npm run dev` | 开发模式（renderer HMR） |
-| `npm run typecheck` | main + renderer 双工程类型检查 |
+| `npm run typecheck` | 双工程类型检查（node 侧 / web 侧） |
+| `npm test` | 领域与运行时测试（vitest，含领域纯净性守护） |
 | `npm run fetch:assets` | 下载 Cubism Core 与示例模型（可重复执行） |
 | `npm run gen:icon` | 重新生成图标（纯 Node，无原生依赖） |
-| `npm run smoke` | 冒烟自检：启动 → 自动发消息（截图存 `.smoke/`）→ 外部 GDI 实拍屏幕校验**透明窗无白屏** |
+| `npm run smoke` | 冒烟自检：启动 → 点击/拖动/对话（截图存 `.smoke/`）→ 外部 GDI 实拍校验**透明窗无白屏** |
 | `npm run dist:win` | 打包 Windows NSIS 安装包 + portable（产物在 `dist/`） |
 
 > 打包工具链若被网络卡住，使用镜像：
@@ -46,27 +52,40 @@ npm run dev            # 启动开发（HMR）
 
 ```
 src/
-├─ main/            # Electron 主进程
-│  ├─ index.ts      # 生命周期 + IPC 汇总
-│  ├─ pet-window.ts # 整屏透明置顶窗（模型/气泡/输入同窗，免裁剪）
-│  ├─ protocol.ts   # pet:// 静态资源协议（抹平 dev/prod 路径）
-│  ├─ brain-gateway.ts # 唯一的 WS 客户端（重连/状态转发）
-│  ├─ mock-brain.ts # 内置 Mock 大脑（实现 brain 协议的 ws 服务）
-│  ├─ store.ts      # JSON 配置持久化（原子写）
-│  ├─ tray.ts / settings-window.ts
-│  └─ resources.ts  # 资源定位 / 模型扫描
-├─ preload/index.ts # contextBridge 类型化桥（sandbox 开启）
-├─ shared/          # 协议 & 配置类型（主/渲染共用）
-└─ renderer/
-   ├─ index.html    # 宠物页（引入 pet:// Cubism Core）
-   ├─ settings.html # 设置页
-   └─ src/
-      ├─ app.ts             # 总装：Pixi 初始化 / 布局 / 事件接线
-      ├─ avatar/            # PetAvatar 抽象：Live2D 实现 + 占位史莱姆 + 工厂
-      ├─ chat/              # 气泡（流式逐字）/ 输入条 / 聊天控制器
-      ├─ interaction.ts     # 命中检测驱动的动态穿透 + 拖拽/点击/注视
-      └─ styles.css
+├─ domain/          领域：宠物模型（纯逻辑，禁止依赖 electron/pixi/DOM/ws）
+│  ├─ pet.ts        宠物聚合根：行为方法 → 领域事件
+│  ├─ ports.ts      六个端口＝「宠物需要世界提供什么」的需求清单
+│  ├─ pose.ts       栖息姿态（归一化坐标 + 活动范围规则）
+│  ├─ emotion.ts / appearance.ts   情绪与形象（表演表查表规则）
+│  ├─ conversation.ts / preferences.ts / events.ts
+├─ app/
+│  └─ pet-runtime.ts  接线员：领域事件 ⇄ 端口调用（用例编排）
+├─ adapters/        一切技术细节的居所
+│  ├─ shell/        主进程壳：透明窗 / 托盘 / 设置窗 / pet:// 协议 /
+│  │                资产扫描 / 配置持久化 / 诊断 / 冒烟钩子
+│  ├─ brain/        心智：WS 连接与重连（brain-link）/ Mock 大脑
+│  ├─ presentation/ 渲染：Pixi 舞台（含 Live2D 与占位躯体）/ 气泡输入 /
+│  │                设置页 / 渲染侧诊断
+│  └─ bridge/       preload 桥 → 领域端口（手势、心智、偏好、形象清单）
+├─ contracts/       跨进程契约：IPC 通道与载荷 / 大脑协议 / 应用配置 / 资产清单
+├─ entries/         组装根：main.ts / preload.ts / renderer.ts
+└─ renderer/        静态宿主：index.html / settings.html / styles.css
+tests/              领域与运行时测试（含领域纯净性守护）
 ```
+
+## 想改某处，该动哪个文件
+
+| 想做的事 | 改哪里 |
+|---|---|
+| 改宠物的行为或规矩（如"被摸时别打断说话"） | `domain/pet.ts`（并加 `tests/domain/pet.test.ts` 用例） |
+| 改某句话的时序（先表情后文字？） | `app/pet-runtime.ts` |
+| 换渲染引擎 / 改表情口型表现 | `adapters/presentation/stage/` |
+| 换大脑后端 / 改重连策略 | `adapters/brain/` |
+| 改桌面交互（阈值、穿透、吸附） | `adapters/bridge/electron-desk.ts` |
+| 改气泡外观 / 打字机节奏 | `adapters/presentation/chat/dom-chat-surface.ts` |
+| 加一个 IPC 通道 | `contracts/ipc.ts` + `entries/preload.ts` + `entries/main.ts` |
+| 调窗口行为（透明、置顶、跟随显示器） | `adapters/shell/pet-window.ts` |
+
 
 ## 关键设计
 
@@ -74,17 +93,16 @@ src/
 > 以下是速览：
 
 - **整屏透明窗 + 动态穿透**：`setIgnoreMouseEvents(true, {forward:true})` 常态穿透，
-  渲染进程在 `mousemove` 中做命中检测（模型包围盒 / `data-interactive` DOM），
-  命中才捕获鼠标——空白处点击直接落到下层应用。
+  渲染进程做命中检测（宠物包围盒 / 界面部件），命中才捕获鼠标——空白处点击落到下层应用。
+  领域语义是「捕获 / 放行」，实现在 `adapters/bridge/electron-desk.ts`。
 - **透明合成修复（重要）**：本机环境需 `premultipliedAlpha:false`，否则 WebGL 内容出现后
   整窗变白（详见 [docs/white-screen-investigation.md](docs/white-screen-investigation.md)；
-  `npm run smoke` 含白屏回归检测）。
-- **渲染栈隔离**：Live2D 相关代码收敛在 `renderer/src/avatar/`，`PetAvatar` 接口之下
-  可整体替换实现（当前：Live2D / 占位史莱姆），降级不影响其余模块。
-- **情绪映射表**：每个模型目录一份 `pet.model.json`（由 fetch 脚本生成），声明
-  `情绪 → expression/motion`，换模型不改代码；后端只发 `emotion` 语义标签。
-- **口型同步已接好**：说话状态经 `startLipSync/setLipSyncValue` 驱动，TTS 接入后
-  复用同一管道。
+  `npm run smoke` 含白屏回归检测）。该开关在 `adapters/presentation/stage/pixi-stage.ts`。
+- **渲染栈隔离**：Live2D 相关代码只存在于 `adapters/presentation/stage/`，
+  底下是 `StageBody` 两种实现（Live2D / 占位史莱姆），换引擎不影响领域与运行时。
+- **情绪映射表**：每个模型目录一份 `pet.model.json`，声明 `情绪 → 表情/动作`；
+  领域只认识情绪标签（`happy`），查表规则在 `domain/appearance.ts`。
+- **口型同步已接好**：说话状态经口型包络驱动（`stage/live2d-body.ts`），TTS 接入后复用同一管道。
 
 ## 资产与许可（重要）
 
