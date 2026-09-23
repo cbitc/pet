@@ -1,4 +1,4 @@
-# 0005 · 补齐外围工程：格式化、静态检查、提交门禁与 CI
+# 0005 · 补齐外围工程：格式化、静态检查与提交门禁
 
 > 状态：已关闭（已落地） · 类型：重构 · 日期：2026-09-23 · 关联：[0003](0003-declarative-refactor.md) / [0004](0004-shared-primitives.md)
 
@@ -11,13 +11,13 @@
 - **没有格式化**：缩进/引号/换行全凭手感，协作时产生大量无意义 diff；
 - **没有静态检查**：`void promise` 之外真正漏掉的悬空 Promise、Promise 误用无从发现；
 - **没有编辑器/行尾规范**：仓库此前长期出现「整文件 CRLF 变更」的噪声 diff；
-- **没有提交门禁与 CI**：坏代码可以直接进主干；
+- **没有提交门禁**：坏代码可以直接进主干；
 - **没有覆盖率视角**：不知道纯逻辑层的测试盲区；
 - **两份 tsconfig 重复** 全部 compilerOptions；`modelEntryUrl` 被重复实现。
 
 ## 2. 目标与非目标
 
-- **目标**：`format / lint / editorconfig / gitattributes / hooks / CI / coverage` 一应俱全，
+- **目标**：`format / lint / editorconfig / gitattributes / hooks / coverage` 一应俱全，
   且与既有风格（无分号、单引号、2 空格）零冲突。
 - **非目标**：不改业务行为；不引入前端框架；不启用会制造大量噪声的严格开关
   （`noUncheckedIndexedAccess`、`exactOptionalPropertyTypes`）；不强制 commit message 规范。
@@ -29,7 +29,7 @@
 - [x] `npm run docs:check` 通过
 - [x] `npm run build` 通过
 - [x] `npm run check` 一条命令跑完全部校验
-- [x] `pre-commit` 钩子生效；CI 工作流就位
+- [x] `pre-commit` 钩子生效
 
 ## 4. 方案
 
@@ -39,9 +39,7 @@
 | 静态检查      | ESLint 10 flat + typescript-eslint 8（类型感知）  | `eslint.config.mjs`                   |
 | 编辑器/行尾   | EditorConfig + `.gitattributes`（`eol=lf`）       | `.editorconfig`、`.gitattributes`     |
 | 提交门禁      | husky 9 + lint-staged                             | `.husky/pre-commit`、`package.json`   |
-| CI            | GitHub Actions                                    | `.github/workflows/ci.yml`            |
 | 覆盖率        | `@vitest/coverage-v8`（含阈值门禁）               | `vitest.config.ts`                    |
-| 依赖更新      | Dependabot（npm + actions，开发依赖分组）         | `.github/dependabot.yml`              |
 | 版本锚定      | `.nvmrc`（24）+ `engines.node>=20`                | 根目录 / `package.json`               |
 | 许可          | MIT `LICENSE`                                     | 根目录                                |
 | tsconfig 去重 | 抽 `tsconfig.base.json`，node/web `extends`       | `tsconfig.*.json`                     |
@@ -58,7 +56,6 @@
 | 启用类型感知（`projectService`）但只挑 4 条规则  | 拿到悬空 Promise 等高价值检查，又不被上百条风格告警淹没  | 直接上 `recommendedTypeChecked`（噪声过大） |
 | `.gitattributes` 设 `* text=auto eol=lf`         | 根治长期存在的 CRLF 整文件 diff                          | 靠各人 `core.autocrlf`（不可控）            |
 | Markdown 也纳入 Prettier                         | 与仓库既有已对齐的表格一致；`proseWrap` 默认保留手工换行 | 忽略 `*.md`（文档风格不统一）               |
-| CI 跑 build 但不跑 smoke                         | Ubuntu 无桌面环境，smoke 需要真实透明窗；本地保留        | CI 强行 smoke（不可行）                     |
 | coverage 只统计 `domain/shared/contracts/app`    | 适配器依赖 Electron/DOM，在 node 环境统计无意义          | 全量统计（大量 0% 噪声）                    |
 
 ## 6. 执行与结果
@@ -84,5 +81,5 @@ npm run build
 ## 8. 关联
 
 - 关键文件：`eslint.config.mjs`、`.prettierrc.json`、`.editorconfig`、`.gitattributes`、
-  `.husky/pre-commit`、`.github/workflows/ci.yml`、`tsconfig.base.json`
-- 全局文档：[../conventions.md](../conventions.md) §2/§4/§7
+  `.husky/pre-commit`、`tsconfig.base.json`
+- 全局文档：[../conventions.md](../conventions.md) §2/§4/§10

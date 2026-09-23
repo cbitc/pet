@@ -13,6 +13,7 @@
 | 技术怎么落地、代码为什么这样组织   | [architecture.md](architecture.md) | 全局常青 |
 | 代码 / 测试 / 文档「什么算合格」   | [conventions.md](conventions.md)   | 全局常青 |
 | 这件事为什么做、怎么做、结果如何   | [issues/](issues/README.md)        | 过程记录 |
+| 改了什么                           | [../CHANGELOG.md](../CHANGELOG.md) | 变更记录 |
 
 **推荐的第一次阅读顺序**：`domain.md`（业务）→ `architecture.md`（技术）→ `conventions.md`（规矩）。
 
@@ -23,12 +24,11 @@ docs/
 ├─ README.md              本文件：地图与维护约定
 ├─ domain.md              全局：领域模型、通用语言、不变量、边界
 ├─ architecture.md        全局：分层、进程/窗口模型、代码映射、坑与扩展点
-├─ conventions.md         全局：分层规则、代码与文档规范、测试验收、许可红线
+├─ conventions.md         全局：分层、代码/测试/文档规范、提交与分支、变更记录、许可
 └─ issues/                过程：issue 驱动开发
    ├─ README.md           工作流与索引
    ├─ TEMPLATE.md         新 issue 模板
-   ├─ 0001-white-screen.md
-   └─ 0002-live2d-texture-gc.md
+   └─ 0001-*.md           按编号递增的过程记录
 ```
 
 ## 3. 维护约定（摘要）

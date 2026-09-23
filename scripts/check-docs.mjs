@@ -1,5 +1,5 @@
 /**
- * 文档链接自检：扫描 README 与 docs/ 下的相对 Markdown 链接，报告死链。
+ * 文档链接自检：扫描仓库根与 docs/ 下的相对 Markdown 链接，报告死链。
  *
  * 约定来源见 docs/conventions.md §5：文档之间用相对链接，代码与文档同级维护。
  * 用法：npm run docs:check
@@ -18,7 +18,12 @@ function listMarkdown(dir) {
   })
 }
 
-const files = [path.join(root, 'README.md'), ...listMarkdown(path.join(root, 'docs'))]
+const rootMarkdown = fs
+  .readdirSync(root, { withFileTypes: true })
+  .filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
+  .map((entry) => path.join(root, entry.name))
+
+const files = [...rootMarkdown, ...listMarkdown(path.join(root, 'docs'))]
 const broken = []
 
 for (const file of files) {

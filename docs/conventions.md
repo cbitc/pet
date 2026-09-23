@@ -102,7 +102,7 @@ shared/     通用原语：零 import 最底层（clamp / 命中判定）
 - **工具分工**：`tsc` 管类型，ESLint 管「类型管不到的错」（悬空 Promise、Promise 误用等），
   Prettier 管格式。两者规则互不重叠：ESLint 不承担排版，Prettier 不做语义检查。
 - **提交门禁**：husky 的 `pre-commit` 用 lint-staged 对暂存文件跑 `eslint --fix` +
-  `prettier --write`；推送到远端由 CI（`.github/workflows/ci.yml`）跑全量校验。
+  `prettier --write`。
 - **测试是规格**：修 bug 先写失败用例；改行为先改用例再改实现。
 - 端口替身只记录「运行时对它做了什么」，不做真实技术动作。
 
@@ -127,6 +127,7 @@ shared/     通用原语：零 import 最底层（clamp / 命中判定）
 | 技术结构 / 依赖 / 脚本 / 环境变量 | `architecture.md`                                                       |
 | 写码、测试、文档的「规矩」        | 本文（`conventions.md`）                                                |
 | 大脑消息格式                      | `contracts/wire-protocol.ts`（类型即契约；设计见 `architecture.md` §8） |
+| 用户可见变更                      | `CHANGELOG.md` 的 `[Unreleased]`（并链接 issue 文档）                   |
 | 任何值得记录的变更                | 先开 `docs/issues/`，完成后回写上面的全局文档                           |
 
 **代码与文档同级维护**：代码改动使文档失真时，必须在同一次改动里修正文档，不留「以后补」。
@@ -142,14 +143,62 @@ shared/     通用原语：零 import 最底层（clamp / 命中判定）
 「决策记录」；当它跨 issue 稳定下来，沉淀进 [architecture.md](architecture.md) 的「关键设计」
 或「已修复的坑」。若将来出现成规模的架构决策，再拆出 `adr/`。
 
-## 6. 资产与许可（红线）
+## 6. 分支命名
+
+分支用于隔离在途工作，命名公式 `<type>/<issue>-<slug>`：`issue` 用 `docs/issues/NNNN`
+的编号（有 GitHub Issue 时用其编号），`slug` 为小写短横线描述。
+
+- 示例：`feat/0007-idle-behavior`、`fix/0012-texture-gc`、`docs/0006-process-conventions`
+- `type` 同提交类型：`feat` / `fix` / `docs` / `refactor` / `perf` / `test` / `build` / `chore`
+- 完成后合入主线并删除分支，保持短命。
+
+## 7. 提交信息规范
+
+遵循 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/)：
+
+```
+<type>(<scope>): <subject>
+
+<正文：为什么这么改，可省略>
+
+Refs: docs/issues/0006-commit-branch-change-conventions.md
+```
+
+| 项         | 约定                                                                                                                                              |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`     | `feat` / `fix` / `docs` / `refactor` / `perf` / `test` / `build` / `ci` / `chore` / `revert` / `style`                                            |
+| `scope`    | 推荐：`domain` / `shared` / `contracts` / `app` / `adapters` / `shell` / `brain` / `stage` / `chat` / `docs` / `deps` / `build`（仅警告，不阻断） |
+| `subject`  | 中文、动词开头、不加句号，标题 ≤ 100 字符                                                                                                         |
+| 破坏性变更 | `type(scope)!:` 或正文 `BREAKING CHANGE:`                                                                                                         |
+| issue 关联 | footer 写 `Refs: docs/issues/NNNN-*.md`；GitHub issue 用 `Closes #12`                                                                             |
+
+示例：
+
+```
+feat(domain): 支持待机小动作
+fix(stage): 换形象时显式销毁纹理，避免 GC 后消失
+docs(conventions): 补齐提交与分支规范
+```
+
+门禁：husky 的 `commit-msg` 钩子调用 commitlint（`commitlint.config.mjs`）。
+无法引用 issue 的琐碎提交（错别字等）可省 footer。
+
+## 8. 变更记录
+
+行为变更记入 `CHANGELOG.md`：采用 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)
+的六类（`Added` / `Changed` / `Deprecated` / `Removed` / `Fixed` / `Security`），
+当前进行的改动写在 `[Unreleased]`，条目链接对应 `docs/issues/NNNN-*.md`。
+
+`package.json` 的 `version` 仅作为构建标识维护，不设正式发布流程。
+
+## 9. 资产与许可（红线）
 
 - `resources/core/live2dcubismcore.min.js`：**禁止再分发、不入库**；由 `npm run fetch:assets`
   从官方下载。发布前确认符合 Live2D SDK 许可。
 - 示例模型（Haru / Shizuku）仅限开发学习；正式发布替换为有授权的模型。
 - 若做成「用户自行加载任意模型」的公开应用，需先向 Live2D 报备审查。
 
-## 7. 常用命令
+## 10. 常用命令
 
 | 命令                              | 用途                                                         |
 | --------------------------------- | ------------------------------------------------------------ |
