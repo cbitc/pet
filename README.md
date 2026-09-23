@@ -70,9 +70,15 @@ src/
 
 ## 关键设计
 
+> 完整的原理讲解与 `文件:行号` 级代码映射见 **[docs/architecture.md](docs/architecture.md)**。
+> 以下是速览：
+
 - **整屏透明窗 + 动态穿透**：`setIgnoreMouseEvents(true, {forward:true})` 常态穿透，
   渲染进程在 `mousemove` 中做命中检测（模型包围盒 / `data-interactive` DOM），
   命中才捕获鼠标——空白处点击直接落到下层应用。
+- **透明合成修复（重要）**：本机环境需 `premultipliedAlpha:false`，否则 WebGL 内容出现后
+  整窗变白（详见 [docs/white-screen-investigation.md](docs/white-screen-investigation.md)；
+  `npm run smoke` 含白屏回归检测）。
 - **渲染栈隔离**：Live2D 相关代码收敛在 `renderer/src/avatar/`，`PetAvatar` 接口之下
   可整体替换实现（当前：Live2D / 占位史莱姆），降级不影响其余模块。
 - **情绪映射表**：每个模型目录一份 `pet.model.json`（由 fetch 脚本生成），声明
