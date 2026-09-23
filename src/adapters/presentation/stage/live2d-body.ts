@@ -32,7 +32,7 @@ interface Live2DModelLike extends Container {
       expressionManager?: { resetExpression?: () => void }
     }
   }
-  destroy(): void
+  destroy(options?: { texture?: boolean; baseTexture?: boolean; textureSource?: boolean } | boolean): void
 }
 
 /** 模型入口地址（由组装根通过 pet:// 协议提供） */
@@ -121,7 +121,9 @@ export class Live2DBody implements StageBody {
     this.setSpeaking(false)
     this.view.removeFromParent()
     try {
-      this.view.destroy()
+      // 舞台已关闭 Pixi 的 GC（见 pixi-stage.ts 的 gcActive 注释），
+      // 换形象时必须在这里显式销毁模型纹理，否则 GPU 纹理随切换次数累积。
+      this.view.destroy({ texture: true, textureSource: true })
     } catch {
       // 库内部销毁异常不影响整体
     }

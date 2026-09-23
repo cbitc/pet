@@ -2,7 +2,9 @@
  * Pixi 舞台——PetStage 端口的实现：宠物的身体与位置。
  *
  * 技术细节：Pixi 应用初始化、CSP 下的着色器处理、实体摆放与缩放换算、
- * 命中范围上报。白屏修复相关的 WebGL 参数保持醒目（见 initStage）。
+ * 命中范围上报。两个“坑”的修复参数保持醒目（见 PixiStage.create）：
+ *   1) premultipliedAlpha=false —— 透明窗白屏（docs/white-screen-investigation.md）
+ *   2) gcActive=false —— Live2D 纹理被 GC 回收后模型消失（docs/live2d-texture-gc.md）
  */
 
 import 'pixi.js/unsafe-eval'
@@ -45,7 +47,15 @@ export class PixiStage implements PetStage {
       // 保持 false，排障时可用 ?premul=1 复现（docs/white-screen-investigation.md）
       premultipliedAlpha: options.premultipliedAlpha ?? false,
       resolution: options.resolution ?? 1,
-      autoDensity: true
+      autoDensity: true,
+      // 重要：Pixi 8.15+ 的 GCSystem 默认 60s 回收「未使用」纹理。
+      // Live2D 分支缓存原始 WebGLTexture 并直接 gl.bindTexture，绕过了 Pixi 的
+      // GlTextureSystem，其 _gcLastUsed 永不刷新；库里的 source.touched 保护只对
+      // 旧的 TextureGCSystem 有效（TextureSource 已无 touched 字段）。
+      // 结果：模型纹理会在大约 60s 后被 deleteTexture —— 宠物消失但仍可命中点击。
+      // 关闭 GC 规避；形象切换时由 Live2DBody.destroy 显式销毁纹理，避免泄漏。
+      // 详见 docs/live2d-texture-gc.md
+      gcActive: false
     })
     return new PixiStage(app, options)
   }

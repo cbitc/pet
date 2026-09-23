@@ -98,6 +98,9 @@ tests/              领域与运行时测试（含领域纯净性守护）
 - **透明合成修复（重要）**：本机环境需 `premultipliedAlpha:false`，否则 WebGL 内容出现后
   整窗变白（详见 [docs/white-screen-investigation.md](docs/white-screen-investigation.md)；
   `npm run smoke` 含白屏回归检测）。该开关在 `adapters/presentation/stage/pixi-stage.ts`。
+- **Live2D 纹理 GC 规避（重要）**：Pixi 8.15+ 默认约 60s 回收「未使用」纹理，而 Live2D
+  分支绕过 Pixi 的纹理绑定，模型会在大约 1 分钟后消失（但仍可点击）。保持
+  `gcActive:false`，换形象时显式销毁纹理（详见 [docs/live2d-texture-gc.md](docs/live2d-texture-gc.md)）。
 - **渲染栈隔离**：Live2D 相关代码只存在于 `adapters/presentation/stage/`，
   底下是 `StageBody` 两种实现（Live2D / 占位史莱姆），换引擎不影响领域与运行时。
 - **情绪映射表**：每个模型目录一份 `pet.model.json`，声明 `情绪 → 表情/动作`；

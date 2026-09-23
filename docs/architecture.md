@@ -269,6 +269,10 @@ Pixi Application.stage（WebGL 渲染）
 选型背景：原版 `pixi-live2d-display` 只到 Pixi v7；`@jannchie/pixi-live2d-display`
 是活跃维护的 v8 分支，API 兼容且内置 lipSync。
 
+> ⚠️ 该分支缓存原始 `WebGLTexture` 并绕过 Pixi 的纹理绑定，会被 Pixi 8.15+ 的
+> `GCSystem` 在约 60s 后回收，导致模型消失。修复与原理见 §7.5 和
+> [live2d-texture-gc.md](live2d-texture-gc.md)。
+
 ### 7.2 两种"躯体"，一个抽象
 
 `adapters/presentation/stage/stage-body.ts` 定义 `StageBody`（view / naturalHeight /
@@ -317,6 +321,32 @@ Live2DModel.from() 失败 → 占位躯体 + 说明原因（catch 记录）
 **名字易误解，作用恰恰是为 CSP 环境去 eval**），必须在创建 Application 之前 import。
 
 > 注意：**心智的 WS 地址不出现在渲染进程 CSP 里**——网络在主进程（§8.2）。
+
+### 7.5 纹理 GC：模型为什么会在 1 分钟后消失（第二个坑）
+
+Pixi 8.15+ 引入 `GCSystem`，默认 `gcActive: true`、`gcMaxUnusedTime: 60s`、
+`gcFrequency: 30s`：凡是被 Pixi `GlTextureSystem` 绑定过、且 60s 内没再被绑定/取用的纹理，
+会被 `gl.deleteTexture` 回收。
+
+问题在于 Live2D 分支**只第一次**经 `getGlSource()` 取得 `WebGLTexture`（此刻刷新一次
+`_gcLastUsed`），其后每帧直接 `gl.bindTexture` 自己缓存的纹理，不再经过 Pixi，于是
+`_gcLastUsed` 永不更新；库里用于防 GC 的 `texture.source.touched` 又只对旧
+`TextureGCSystem` 有效（`TextureSource` 已无 `touched` 字段）。
+大约 60s 后纹理被删，模型画不出来，但 CPU 侧的包围盒/变换还在——**表现为“消失但仍可点击”**。
+
+修复在 `adapters/presentation/stage/pixi-stage.ts`：
+
+```ts
+app.init({
+  // ...
+  gcActive: false, // 关闭 Pixi GPU 资源 GC，规避 Live2D 纹理被误收（见 docs/live2d-texture-gc.md）
+})
+```
+
+关闭 GC 后，本该由 GC 兜底的释放需要显式完成；本应用只有 Live2D 纹理会跨形象切换累积，
+因此 `adapters/presentation/stage/live2d-body.ts` 的 `destroy()` 改为
+`view.destroy({ texture: true, textureSource: true })`。完整证据链、备选方案与复现步骤见
+[live2d-texture-gc.md](live2d-texture-gc.md)。
 
 ---
 
@@ -599,7 +629,7 @@ src/
 resources/                     core（不入库）/ models（可替换）/ icon.png
 tests/                         领域与运行时测试 + 纯净性守护
 scripts/                       fetch-core / fetch-models / gen-icon / smoke / 诊断系列
-docs/                          本文件 / domain / brain-protocol / white-screen-investigation
+docs/                          本文件 / domain / brain-protocol / white-screen-investigation / live2d-texture-gc
 ```
 
 ---
@@ -641,6 +671,12 @@ alias: { '/entries': resolve(__dirname, 'src/entries'), '/adapters': resolve(__d
 - 本机 WebGL 走 SwiftShader 软件后端（真机 GPU 在 Electron 下未被选用），
   白屏根因在预乘 alpha 的合成路径，与后端软/硬无关。
 
+**已修复的坑（改动前先读，不要回退）**
+
+- **透明窗白屏**：`premultipliedAlpha` 必须为 `false`（§5、[white-screen-investigation.md](white-screen-investigation.md)）。
+- **模型静置后消失**：Pixi 8.15+ 的 `GCSystem` 会回收 Live2D 直接绑定的纹理；
+  必须保持 `gcActive: false`，且换形象时显式销毁纹理（§7.5、[live2d-texture-gc.md](live2d-texture-gc.md)）。
+
 **扩展点（按接入成本排序）**
 
 | 想做的事 | 改动位置 |
@@ -652,4 +688,3 @@ alias: { '/entries': resolve(__dirname, 'src/entries'), '/adapters': resolve(__d
 | 亲密度/成长 | `domain/pet.ts` 加状态与规则；累计数据可放偏好或心智侧 |
 | 多显示器漫游 | `domain/ports.ts` 的视口扩展为多屏模型；`adapters/shell/pet-window.ts` 跟随目标屏 |
 | 复杂设置 UI | 换 `adapters/presentation/settings-page.ts`；IPC 契约（§10.2）不变 |
-```
