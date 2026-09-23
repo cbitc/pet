@@ -2,7 +2,7 @@ import { net, protocol } from 'electron'
 import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { resourceRoot } from './resources'
+import { resourceRoot } from './asset-catalog'
 
 export const PET_SCHEME = 'pet'
 

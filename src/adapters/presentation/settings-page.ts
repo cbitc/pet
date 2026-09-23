@@ -1,4 +1,4 @@
-import type { AppConfig } from '../../shared/config'
+import type { AppConfig } from '../../contracts/app-config'
 
 const bridge = window.pet
 

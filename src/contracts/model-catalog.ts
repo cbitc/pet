@@ -29,6 +29,13 @@ export const DEFAULT_MODEL_META = {
   tapMotion: 'Tap'
 } as const
 
+/** 形象资产清单：可穿的形象 + Cubism Core 是否就位（IPC 载荷） */
+export interface ModelCatalog {
+  /** Cubism Core 是否已就位（缺失时舞台会降级为占位形象） */
+  core: boolean
+  models: ModelMeta[]
+}
+
 /** 模型资源的 pet:// URL 前缀 */
 export function modelBaseUrl(dir: string): string {
   return `pet://models/${dir}`

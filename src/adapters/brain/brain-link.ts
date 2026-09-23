@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events'
 import WebSocket from 'ws'
-import { AppConfig } from '../shared/config'
-import { ClientMessage, ServerMessage } from '../shared/protocol'
+import { AppConfig } from '../../contracts/app-config'
+import { ClientMessage, ServerMessage } from '../../contracts/wire-protocol'
 import { startMockBrain, MockBrainHandle } from './mock-brain'
 
 export type BrainStatus = 'connecting' | 'online' | 'offline'

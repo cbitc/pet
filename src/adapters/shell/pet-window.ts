@@ -1,6 +1,6 @@
 import { BrowserWindow, screen } from 'electron'
 import path from 'node:path'
-import { iconPath } from './resources'
+import { iconPath } from './asset-catalog'
 
 /**
  * 宠物主窗口：覆盖主显示器工作区的整屏透明层。

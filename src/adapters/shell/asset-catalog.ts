@@ -1,7 +1,7 @@
 import { app } from 'electron'
 import fs from 'node:fs'
 import path from 'node:path'
-import { ModelMeta } from '../shared/model'
+import { ModelMeta } from '../../contracts/model-catalog'
 
 /** 资源根目录：dev 为项目 resources/；打包后为 electron-builder 的 extraResources 目录 */
 export function resourceRoot(): string {

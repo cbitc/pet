@@ -1,6 +1,6 @@
 import { app, Menu, Tray, nativeImage } from 'electron'
-import { store } from './store'
-import { listModels, iconPath } from './resources'
+import { store } from './config-store'
+import { listModels, iconPath } from './asset-catalog'
 
 /**
  * 托盘：桌宠常驻入口。菜单随配置变化重建。

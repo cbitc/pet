@@ -15,10 +15,12 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "src/main/**/*.ts",
-    "src/shared/**/*.ts",
+    "src/contracts/**/*.ts",
     "src/domain/**/*.ts",
     "src/app/**/*.ts",
+    "src/adapters/shell/**/*.ts",
+    "src/adapters/brain/**/*.ts",
+    "src/entries/main.ts",
     "tests/**/*.ts",
     "vitest.config.ts",
     "electron.vite.config.ts"

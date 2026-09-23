@@ -7,6 +7,7 @@
  */
 
 import { preferencesFrom, type Preferences, type PreferencesStore, type Unsubscribe } from '../../domain'
+import { IPC } from '../../contracts/ipc'
 
 /** 偏好字段在应用配置里的形态（技术层形状，与领域解耦） */
 export interface PreferencesConfigLike {
@@ -19,7 +20,7 @@ export interface PreferencesConfigLike {
 export interface ConfigBridge {
   getConfig(): Promise<PreferencesConfigLike>
   setConfig(patch: Record<string, unknown>): Promise<unknown>
-  on(event: 'config:changed', handler: (config: PreferencesConfigLike) => void): Unsubscribe
+  on(event: typeof IPC.configChanged, handler: (config: PreferencesConfigLike) => void): Unsubscribe
 }
 
 /** 应用配置 → 偏好 */
@@ -56,6 +57,6 @@ export class IpcPreferencesStore implements PreferencesStore {
   }
 
   onChange(handler: (preferences: Preferences) => void): Unsubscribe {
-    return this.bridge.on('config:changed', (config) => handler(toPreferences(config)))
+    return this.bridge.on(IPC.configChanged, (config) => handler(toPreferences(config)))
   }
 }

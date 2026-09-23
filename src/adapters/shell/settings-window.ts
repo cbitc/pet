@@ -1,6 +1,6 @@
 import { BrowserWindow } from 'electron'
 import path from 'node:path'
-import { iconPath } from './resources'
+import { iconPath } from './asset-catalog'
 
 let settingsWin: BrowserWindow | null = null
 

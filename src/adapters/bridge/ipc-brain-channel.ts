@@ -6,12 +6,13 @@
  */
 
 import type { BrainChannel, BrainStatus, PetIdentity, ReplyMessage, Unsubscribe } from '../../domain'
+import { IPC } from '../../contracts/ipc'
 
 /** preload 暴露的桥形状（见 contracts 与 preload 入口） */
 export interface BrainBridge {
   sendChat(text: string): void
-  on(event: 'brain:message', handler: (payload: unknown) => void): Unsubscribe
-  on(event: 'brain:status', handler: (payload: unknown) => void): Unsubscribe
+  on(event: typeof IPC.brainMessage, handler: (payload: unknown) => void): Unsubscribe
+  on(event: typeof IPC.brainStatus, handler: (payload: unknown) => void): Unsubscribe
 }
 
 const isStatus = (value: unknown): value is BrainStatus =>
@@ -61,14 +62,14 @@ export class IpcBrainChannel implements BrainChannel {
   }
 
   onReply(handler: (message: ReplyMessage) => void): Unsubscribe {
-    return this.bridge.on('brain:message', (raw) => {
+    return this.bridge.on(IPC.brainMessage, (raw) => {
       const message = toReplyMessage(raw)
       if (message) handler(message)
     })
   }
 
   onStatus(handler: (status: BrainStatus) => void): Unsubscribe {
-    return this.bridge.on('brain:status', (raw) => {
+    return this.bridge.on(IPC.brainStatus, (raw) => {
       if (isStatus(raw)) handler(raw)
     })
   }

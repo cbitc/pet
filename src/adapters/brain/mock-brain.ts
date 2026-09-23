@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { WebSocketServer, WebSocket } from 'ws'
-import { ChatSend, ClientMessage, EmotionName, ServerMessage } from '../shared/protocol'
+import { ChatSend, ClientMessage, EmotionName, ServerMessage } from '../../contracts/wire-protocol'
 
 /**
  * 内置 Mock 大脑：在本机随机端口起一个真实的 WebSocket 服务，

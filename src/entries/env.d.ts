@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 
-import type { PetBridge } from '../../preload/index'
+import type { PetBridge } from './preload'
 
 declare global {
   interface Window {

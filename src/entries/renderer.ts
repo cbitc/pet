@@ -6,8 +6,9 @@
  */
 
 import { createPetRuntime, type PetRuntime } from '../app/pet-runtime'
+import { IPC } from '../contracts/ipc'
 import { DEFAULT_POSE } from '../domain'
-import type { PetBridge } from '../preload'
+import type { PetBridge } from './preload'
 import { appearancesFromAssets } from '../adapters/bridge/appearance-catalog'
 import { ElectronDesk } from '../adapters/bridge/electron-desk'
 import { IpcBrainChannel } from '../adapters/bridge/ipc-brain-channel'
@@ -58,8 +59,8 @@ async function main(): Promise<void> {
   const runtime: PetRuntime = createPetRuntime({ stage, desk, brain, chat, preferences })
 
   // 托盘动作：唤起输入框 / 位置归位（归位 = 把偏好写回默认位置，宠物会自己挪过去）
-  bridge.on('ui:toggle-input', () => chat.toggleInput())
-  bridge.on('ui:reset-pose', () => {
+  bridge.on(IPC.toggleInput, () => chat.toggleInput())
+  bridge.on(IPC.resetPose, () => {
     void preferences.save({ pose: DEFAULT_POSE })
   })
 

@@ -15,12 +15,14 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "src/preload/**/*.ts",
-    "src/shared/**/*.ts",
+    "src/contracts/**/*.ts",
     "src/domain/**/*.ts",
     "src/app/**/*.ts",
-    "src/adapters/**/*.ts",
-    "src/entries/**/*.ts",
+    "src/adapters/presentation/**/*.ts",
+    "src/adapters/bridge/**/*.ts",
+    "src/entries/preload.ts",
+    "src/entries/renderer.ts",
+    "src/entries/env.d.ts",
     "src/renderer/*.html"
   ]
 }
