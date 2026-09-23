@@ -93,8 +93,13 @@ shot('desktop-baseline.png')
 const baseWhite = whiteRatio(path.join(OUT, 'desktop-baseline.png'))
 console.log(`[smoke] 基线白点比例 = ${(baseWhite * 100).toFixed(1)}%`)
 
-console.log('[smoke] 2/3 启动应用（PET_SMOKE=1：自动发消息 + 截图）…')
-const env = { ...process.env, PET_SMOKE: '1' }
+console.log('[smoke] 2/3 启动应用（PET_SMOKE=1：自动点击/拖动/对话 + 截图）…')
+const env = {
+  ...process.env,
+  PET_SMOKE: '1',
+  // 用独立数据目录：自检会真的拖动宠物，绝不能改到主人正在用的配置与位置
+  PET_USER_DATA: path.resolve(OUT, 'user-data')
+}
 if (swArg) env.PET_SWITCH = swArg.slice(9)
 const child = spawn('npx', ['electron', '.'], {
   env,

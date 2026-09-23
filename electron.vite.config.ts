@@ -29,8 +29,13 @@ export default defineConfig({
       }
     },
     resolve: {
+      // dev 下 Vite 以 src/renderer 为根，HTML 无法用相对路径加载根之外的组装根：
+      // 浏览器会把 ../entries/x 归一化成 /entries/x 再来请求，而根目录下并没有 entries/。
+      // 这里把这两个"看似根路径"的请求映射回真实目录（构建时 HTML 走原生相对路径
+      // 解析，不经过别名，因此打包产物与此无关）。
       alias: {
-        '@': resolve(__dirname, 'src/renderer/src')
+        '/entries': resolve(__dirname, 'src/entries'),
+        '/adapters': resolve(__dirname, 'src/adapters')
       }
     }
   }

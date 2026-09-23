@@ -534,6 +534,10 @@ app/pet-runtime.ts                                  Pet.say(文本)
 白屏 bug 恰恰发生在它之后。冒烟用 `scripts/gdi-shot.ps1`（独立于 Chromium）
 拍屏幕，才能捕获"页面正常但屏幕全白"这类合成层故障。
 
+**隔离**：冒烟会真的拖动宠物并落盘，因此脚本通过 `PET_USER_DATA` 把数据目录
+指向 `.smoke/user-data`——**绝不触碰主人正在使用的配置与位置**；
+该环境变量同时让自检实例与正在运行的实例互不占用单实例锁，可以边开发边自检。
+
 ### 12.3 诊断层（白屏调查留下的实验工具箱）
 
 | 工具 | 用途 | 入口 |
@@ -600,7 +604,35 @@ docs/                          本文件 / domain / brain-protocol / white-scree
 
 ---
 
-## 14. 已知现象与扩展点
+## 14. 开发环境注意事项
+
+**HTML 引用渲染根之外的脚本**（`index.html` 加载 `entries/renderer.ts`、
+`settings.html` 加载 `adapters/presentation/settings-page.ts`）之所以能工作，
+靠的是 `electron.vite.config.ts` 里 renderer 段的两条别名：
+
+```ts
+alias: { '/entries': resolve(__dirname, 'src/entries'), '/adapters': resolve(__dirname, 'src/adapters') }
+```
+
+原因：dev 下 Vite 以 `src/renderer` 为根，浏览器会把 `../entries/renderer.ts`
+归一化成 `/entries/renderer.ts` 再来请求——根目录下并没有 `entries/`，
+于是 Vite 找不到模块（日志报 `Failed to load url`，页面白屏）；
+生产构建走 Rollup 的原生相对路径解析，不受影响，所以这个坑**只在 dev 暴露**。
+新增"根之外的入口"时，记得同步加一条别名。
+
+**环境变量一览**（都在 `adapters/shell/` 与 `entries/main.ts` 里读取）：
+
+| 变量 | 用途 |
+|---|---|
+| `PET_USER_DATA` | 改数据目录：自检实例与正在运行的实例互不干扰（也是冒烟隔离的基础） |
+| `PET_SMOKE=1` | 启动自检流程（点击/拖动/对话 + 截图），见 §12.2 |
+| `PET_DIAG=1` / `PET_DIAG_MINIMAL` / `PET_DIAG_SCENARIO` / `PET_DIAG_NOGPU` | 白屏诊断工具箱，见 §12.3 |
+| `PET_SWITCH=<a;b>` / `PET_NOGPU=1` | 注入 Chromium 开关 / 关闭硬件加速（A/B 实验） |
+| `PET_RENDER_QUERY=<aa=0&premul=1>` | 从主进程向页面注入渲染参数 |
+
+---
+
+## 15. 已知现象与扩展点
 
 **已知现象（非缺陷）**
 

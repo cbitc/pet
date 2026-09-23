@@ -1,4 +1,5 @@
 import { app, ipcMain, dialog } from 'electron'
+import fs from 'node:fs'
 import { IPC } from '../contracts/ipc'
 import { DeepPartial } from '../contracts/app-config'
 import { store } from '../adapters/shell/config-store'
@@ -17,6 +18,15 @@ import {
   runMinimalProbe,
   runScenario
 } from '../adapters/shell/diagnostics'
+
+// 自检/排障专用：把数据目录指到别处，从而与正在运行的实例互不干扰
+// （单实例锁与配置都存放在数据目录；正常启动不会走到这里）
+const userDataOverride = process.env['PET_USER_DATA']
+if (userDataOverride) {
+  fs.mkdirSync(userDataOverride, { recursive: true })
+  app.setPath('userData', userDataOverride)
+  console.log(`[main] userData → ${userDataOverride}`)
+}
 
 // 单实例：重复启动时聚焦已有宠物
 if (!app.requestSingleInstanceLock()) {
