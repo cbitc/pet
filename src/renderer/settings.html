@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+    />
+    <title>桌宠设置</title>
+  </head>
+  <body>
+    <main>
+      <h2>桌宠设置</h2>
+
+      <section>
+        <h3>大脑</h3>
+        <label class="radio">
+          <input type="radio" name="brain-mode" value="mock" />
+          内置模拟（无需后端，用于体验/开发）
+        </label>
+        <label class="radio">
+          <input type="radio" name="brain-mode" value="remote" />
+          远程大脑服务（WebSocket）
+        </label>
+        <label class="field">
+          <span>服务地址</span>
+          <input id="brain-url" type="text" spellcheck="false" placeholder="ws://127.0.0.1:17321/brain" />
+        </label>
+        <label class="field">
+          <span>人设（system prompt，由大脑侧使用）</span>
+          <textarea id="persona" rows="4"></textarea>
+        </label>
+      </section>
+
+      <section>
+        <h3>形象</h3>
+        <label class="field">
+          <span>模型</span>
+          <select id="model"></select>
+        </label>
+        <label class="field">
+          <span>大小 <b id="scale-val"></b></span>
+          <input id="scale" type="range" min="0.15" max="1.4" step="0.05" />
+        </label>
+      </section>
+
+      <section>
+        <h3>系统</h3>
+        <label class="radio">
+          <input type="checkbox" id="open-at-login" />
+          开机自动启动
+        </label>
+      </section>
+
+      <footer>
+        <button id="save">保存</button>
+        <span id="saved-tip" hidden>已保存 ✓</span>
+      </footer>
+    </main>
+
+    <script type="module" src="./src/settings-main.ts"></script>
+  </body>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', 'Microsoft YaHei', system-ui, sans-serif;
+      background: #f5f6fa;
+      color: #2b2f3a;
+    }
+    main {
+      max-width: 440px;
+      margin: 0 auto;
+      padding: 20px 24px 28px;
+    }
+    h2 {
+      font-size: 18px;
+      margin: 4px 0 16px;
+    }
+    h3 {
+      font-size: 13px;
+      color: #6a7185;
+      margin: 18px 0 8px;
+      border-bottom: 1px solid #e3e6ee;
+      padding-bottom: 6px;
+    }
+    label.radio {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+      margin: 6px 0;
+    }
+    .field {
+      display: block;
+      margin: 10px 0;
+      font-size: 13px;
+    }
+    .field > span {
+      display: block;
+      margin-bottom: 6px;
+      color: #4a5064;
+    }
+    input[type='text'],
+    textarea,
+    select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #d4d8e3;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      background: #fff;
+      color: inherit;
+    }
+    input[type='text']:disabled,
+    textarea:disabled {
+      background: #eef0f5;
+      color: #9aa1b3;
+    }
+    textarea {
+      resize: vertical;
+    }
+    input[type='range'] {
+      width: 100%;
+    }
+    footer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 22px;
+    }
+    #save {
+      padding: 9px 26px;
+      border: none;
+      border-radius: 9px;
+      background: #3f7fe0;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    #save:hover {
+      background: #5590e6;
+    }
+    #saved-tip {
+      color: #2ea062;
+      font-size: 13px;
+    }
+    .hint {
+      font-size: 12px;
+      color: #98a0b3;
+      margin-top: 4px;
+    }
+  </style>
+</html>

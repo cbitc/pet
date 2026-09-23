@@ -1,0 +1,34 @@
+{
+  "name": "live2d-desktop-pet",
+  "version": "0.1.0",
+  "description": "Live2D 桌宠前端：Electron + PixiJS v8 + 可插拔 LLM 大脑（WebSocket 协议）",
+  "main": "out/main/index.js",
+  "author": "Aiden",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "fetch:assets": "node scripts/fetch-core.mjs && node scripts/fetch-models.mjs",
+    "gen:icon": "node scripts/gen-icon.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "dist:win": "electron-vite build && electron-builder --win",
+    "dist": "electron-vite build && electron-builder"
+  },
+  "dependencies": {
+    "@jannchie/pixi-live2d-display": "^1.4.0",
+    "pixi.js": "^8.21.0",
+    "ws": "^8.21.3"
+  },
+  "devDependencies": {
+    "@swc/core": "^1.0.0",
+    "@types/node": "^24.0.0",
+    "@types/ws": "^8.18.1",
+    "electron": "^44.4.4",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.0.0"
+  }
+}

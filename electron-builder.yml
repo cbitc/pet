@@ -1,0 +1,27 @@
+appId: com.aiden.live2dpet
+productName: Live2D Pet
+directories:
+  buildResources: build
+  output: dist
+files:
+  - out/**
+  - package.json
+  - "!**/*.map"
+extraResources:
+  # Cubism Core 与模型资产不打进 asar，运行时经 pet:// 协议读取
+  - from: resources/core
+    to: core
+  - from: resources/models
+    to: models
+asar: true
+win:
+  target:
+    - nsis
+    - portable
+  icon: build/icon.ico
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+portable:
+  artifactName: ${productName}-${version}-portable.exe

@@ -1,0 +1,15 @@
+node_modules/
+out/
+dist/
+.smoke/
+*.log
+*.tsbuildinfo
+
+# Live2D Cubism Core：许可禁止再分发，不入库（npm run fetch:assets 下载）
+resources/core/
+
+# 示例模型资产体积大，由脚本按需下载
+resources/models/
+
+# 运行时生成的本地配置
+*.local.json

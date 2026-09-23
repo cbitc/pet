@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' pet:; script-src 'self' pet:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' pet: data: blob:; connect-src 'self' pet: blob: ws://localhost:* http://localhost:*; media-src pet: blob:;"
+    />
+    <title>Live2D Pet</title>
+    <!-- Cubism Core 由 pet:// 协议提供；缺失时渲染层自动降级为占位形象 -->
+    <script src="pet://core/live2dcubismcore.min.js"></script>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <canvas id="stage"></canvas>
+
+    <div id="bubbles" aria-live="polite"></div>
+    <div id="status-chip" hidden></div>
+
+    <div id="input-bar" data-interactive hidden>
+      <input id="chat-input" type="text" maxlength="500" placeholder="跟宠物说点什么，回车发送…" />
+      <button id="chat-send" title="发送">➤</button>
+    </div>
+
+    <script type="module" src="./src/app.ts"></script>
+  </body>
+</html>
