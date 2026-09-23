@@ -6,7 +6,6 @@
  * 图案：圆滚滚的小史莱姆 + 眼睛 + 微笑，与占位形象一致。
  */
 import fs from 'node:fs'
-import path from 'node:path'
 import zlib from 'node:zlib'
 
 /* ---------- PNG 编码 ---------- */

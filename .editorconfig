@@ -1,0 +1,17 @@
+# 统一编辑器行为；与 .prettierrc / ESLint 保持一致
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+# 文档保留手工换行，不清理行尾空格（可能用于换行）
+trim_trailing_whitespace = false
+
+[*.{json,yml,yaml}]
+indent_size = 2

@@ -22,7 +22,6 @@ import fs from 'node:fs'
 import path from 'node:path'
 import zlib from 'node:zlib'
 
-const MODES = ['blank', 'dom', 'none', 'placeholder', 'load', 'full']
 const argv = process.argv.slice(2)
 const pageArg = argv.find((a) => !a.startsWith('--'))
 const swArg = argv.find((a) => a.startsWith('--switch='))
@@ -37,9 +36,13 @@ const SHOT_PS = path.join('scripts', 'gdi-shot.ps1')
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const shot = (name) =>
-  spawnSync('powershell', ['-ExecutionPolicy', 'Bypass', '-File', SHOT_PS, path.resolve(OUT, name)], {
-    stdio: 'ignore'
-  })
+  spawnSync(
+    'powershell',
+    ['-ExecutionPolicy', 'Bypass', '-File', SHOT_PS, path.resolve(OUT, name)],
+    {
+      stdio: 'ignore'
+    }
+  )
 
 function decode(file) {
   const buf = fs.readFileSync(file)

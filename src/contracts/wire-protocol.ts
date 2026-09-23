@@ -1,6 +1,6 @@
 /**
  * 桌宠前端 ⇆ 大脑服务的 WebSocket 消息协议（v1）
- * 契约文档见 docs/brain-protocol.md。
+ * 本文件是前后端消息的**类型真相源**；设计说明见 docs/architecture.md §8。
  * 设计原则：后端只下发「文本流 + 结构化指令」，情绪到表情/动作的翻译由前端完成。
  */
 
@@ -75,9 +75,4 @@ export interface BrainErrorMessage {
 }
 
 export type ServerMessage =
-  | SessionReady
-  | ChatDelta
-  | ChatDirective
-  | ChatDone
-  | TtsChunk
-  | BrainErrorMessage
+  SessionReady | ChatDelta | ChatDirective | ChatDone | TtsChunk | BrainErrorMessage

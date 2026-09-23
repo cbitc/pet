@@ -31,7 +31,10 @@ import { createPetRuntime, type PetRuntime } from '../../src/app/pet-runtime'
 import { parseAppearanceSpec } from '../../src/contracts/schemas'
 import { rectContains } from '../../src/shared/geometry'
 
-export function appearance(id: string, performances: AppearanceSpec['performances'] = {}): Appearance {
+export function appearance(
+  id: string,
+  performances: AppearanceSpec['performances'] = {}
+): Appearance {
   return parseAppearanceSpec({ id, displayName: id, performances })
 }
 

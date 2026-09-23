@@ -2,7 +2,8 @@ import { app } from 'electron'
 import { randomUUID } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
-import { AppConfig, DEFAULT_CONFIG, sanitizeConfig } from '../../contracts/app-config'
+import type { AppConfig } from '../../contracts/app-config'
+import { DEFAULT_CONFIG, sanitizeConfig } from '../../contracts/app-config'
 
 type Listener = (cfg: AppConfig) => void
 

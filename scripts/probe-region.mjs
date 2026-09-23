@@ -79,8 +79,16 @@ for (let ry = 0; ry < rows; ry++) {
   for (let rx = 0; rx < cols; rx++) {
     let s = 0
     let n = 0
-    for (let y = Y + Math.floor((ry / rows) * H); y < Y + Math.floor(((ry + 1) / rows) * H); y += 2) {
-      for (let x = X + Math.floor((rx / cols) * W); x < X + Math.floor(((rx + 1) / cols) * W); x += 2) {
+    for (
+      let y = Y + Math.floor((ry / rows) * H);
+      y < Y + Math.floor(((ry + 1) / rows) * H);
+      y += 2
+    ) {
+      for (
+        let x = X + Math.floor((rx / cols) * W);
+        x < X + Math.floor(((rx + 1) / cols) * W);
+        x += 2
+      ) {
         if (x < 0 || y < 0 || x >= w || y >= h) continue
         const [r, g, b] = at(x, y)
         s += r * 0.299 + g * 0.587 + b * 0.114

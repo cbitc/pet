@@ -7,6 +7,7 @@
 
 import { createPetRuntime, type PetRuntime } from '../app/pet-runtime'
 import { IPC } from '../contracts/ipc'
+import { modelEntryUrl } from '../contracts/model-catalog'
 import { DEFAULT_POSE } from '../domain'
 import type { PetBridge } from './preload'
 import { appearancesFromAssets } from '../adapters/bridge/appearance-catalog'
@@ -19,9 +20,6 @@ import { PixiStage } from '../adapters/presentation/stage/pixi-stage'
 
 const bridge = window.pet as PetBridge
 
-/** 模型入口的寻址方式：pet:// 协议指向磁盘上的模型目录（详见 docs/architecture.md） */
-const modelEntryUrl = (dir: string, entry: string): string => `pet://models/${dir}/${entry}`
-
 const params = new URLSearchParams(location.search)
 
 async function main(): Promise<void> {
@@ -29,7 +27,7 @@ async function main(): Promise<void> {
 
   const assets = await bridge.getAssets()
   const catalog = appearancesFromAssets(assets)
-  const urlById = new Map(assets.models.map((m) => [m.dir, modelEntryUrl(m.dir, m.entry)]))
+  const urlById = new Map(assets.models.map((m) => [m.dir, modelEntryUrl(m)]))
   rlog('assets', `core=${assets.core}`, `models=${assets.models.length}`)
 
   const canvas = document.getElementById('stage') as HTMLCanvasElement
@@ -45,7 +43,11 @@ async function main(): Promise<void> {
 
   // 诊断旁路：?stage=... 的内容隔离实验（仅用于白屏排查）
   const diagnosticStage = params.get('stage')
-  if (diagnosticStage === 'none' || diagnosticStage === 'placeholder' || diagnosticStage === 'load') {
+  if (
+    diagnosticStage === 'none' ||
+    diagnosticStage === 'placeholder' ||
+    diagnosticStage === 'load'
+  ) {
     await stage.prepareForDiagnostics(diagnosticStage, catalog[0] ?? null)
     rlog(`stage=${diagnosticStage}：仅初始化舞台，不启动宠物运行时`)
     return
@@ -89,5 +91,3 @@ main().catch((err) => {
   bubble.textContent = `启动失败：${String(err)}`
   document.getElementById('bubbles')?.appendChild(bubble)
 })
-
-

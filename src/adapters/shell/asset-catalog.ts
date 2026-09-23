@@ -1,7 +1,8 @@
 import { app } from 'electron'
 import fs from 'node:fs'
 import path from 'node:path'
-import { DEFAULT_MODEL_META, ModelMeta } from '../../contracts/model-catalog'
+import type { ModelMeta } from '../../contracts/model-catalog'
+import { DEFAULT_MODEL_META } from '../../contracts/model-catalog'
 import { ModelManifestSchema } from '../../contracts/schemas'
 
 /** 资源根目录：dev 为项目 resources/；打包后为 electron-builder 的 extraResources 目录 */
@@ -22,7 +23,8 @@ export function listModels(): ModelMeta[] {
   const root = path.join(resourceRoot(), 'models')
   let dirs: string[]
   try {
-    dirs = fs.readdirSync(root, { withFileTypes: true })
+    dirs = fs
+      .readdirSync(root, { withFileTypes: true })
       .filter((d) => d.isDirectory())
       .map((d) => d.name)
   } catch {
@@ -63,7 +65,11 @@ export function listModels(): ModelMeta[] {
 function guessEntry(dir: string): string {
   try {
     const files = fs.readdirSync(dir)
-    return files.find((f) => f.endsWith('.model3.json')) ?? files.find((f) => f.endsWith('.model.json')) ?? ''
+    return (
+      files.find((f) => f.endsWith('.model3.json')) ??
+      files.find((f) => f.endsWith('.model.json')) ??
+      ''
+    )
   } catch {
     return ''
   }

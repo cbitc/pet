@@ -6,7 +6,9 @@ async function main(): Promise<void> {
   const [cfg, assets] = await Promise.all([bridge.getConfig(), bridge.getAssets()])
 
   const $ = <T extends HTMLElement>(id: string): T => document.getElementById(id) as T
-  const modeInputs = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="brain-mode"]'))
+  const modeInputs = Array.from(
+    document.querySelectorAll<HTMLInputElement>('input[name="brain-mode"]')
+  )
   const urlInput = $<HTMLInputElement>('brain-url')
   const personaInput = $<HTMLTextAreaElement>('persona')
   const modelSelect = $<HTMLSelectElement>('model')

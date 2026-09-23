@@ -17,7 +17,9 @@ export class PetTray {
     }
   ) {
     const img = nativeImage.createFromPath(iconPath())
-    this.tray = new Tray(img.isEmpty() ? nativeImage.createEmpty() : img.resize({ width: 16, height: 16 }))
+    this.tray = new Tray(
+      img.isEmpty() ? nativeImage.createEmpty() : img.resize({ width: 16, height: 16 })
+    )
     this.tray.setToolTip('Live2D Pet')
     this.tray.on('double-click', () => this.actions.onToggleInput())
     this.rebuild()

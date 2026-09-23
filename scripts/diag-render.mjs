@@ -70,6 +70,8 @@ child.stderr.on('data', relay)
 child.on('exit', (code) => {
   out.end()
   console.log(`[diag] electron-vite 退出 code=${code}`)
-  const files = fs.existsSync('.diag') ? fs.readdirSync('.diag').filter((f) => f.endsWith('.png')) : []
+  const files = fs.existsSync('.diag')
+    ? fs.readdirSync('.diag').filter((f) => f.endsWith('.png'))
+    : []
   console.log(`[diag] 截图 ${files.length} 张: ${files.join(', ') || '(无)'}`)
 })

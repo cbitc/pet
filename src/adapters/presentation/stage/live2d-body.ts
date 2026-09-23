@@ -32,7 +32,9 @@ interface Live2DModelLike extends Container {
       expressionManager?: { resetExpression?: () => void }
     }
   }
-  destroy(options?: { texture?: boolean; baseTexture?: boolean; textureSource?: boolean } | boolean): void
+  destroy(
+    options?: { texture?: boolean; baseTexture?: boolean; textureSource?: boolean } | boolean
+  ): void
 }
 
 /** 模型入口地址（由组装根通过 pet:// 协议提供） */

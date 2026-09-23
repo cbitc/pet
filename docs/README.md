@@ -24,7 +24,6 @@ docs/
 ├─ domain.md              全局：领域模型、通用语言、不变量、边界
 ├─ architecture.md        全局：分层、进程/窗口模型、代码映射、坑与扩展点
 ├─ conventions.md         全局：分层规则、代码与文档规范、测试验收、许可红线
-├─ brain-protocol.md      契约：桌宠前端 ⇆ 大脑服务 的 WebSocket 协议（v1）
 └─ issues/                过程：issue 驱动开发
    ├─ README.md           工作流与索引
    ├─ TEMPLATE.md         新 issue 模板

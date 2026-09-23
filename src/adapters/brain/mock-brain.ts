@@ -1,6 +1,11 @@
 import { randomUUID } from 'node:crypto'
 import { WebSocketServer, WebSocket } from 'ws'
-import { ChatSend, ClientMessage, EmotionName, ServerMessage } from '../../contracts/wire-protocol'
+import type {
+  ChatSend,
+  ClientMessage,
+  EmotionName,
+  ServerMessage
+} from '../../contracts/wire-protocol'
 
 /**
  * 内置 Mock 大脑：在本机随机端口起一个真实的 WebSocket 服务，
@@ -22,9 +27,7 @@ const RULES: { match: RegExp; replies: Reply[] }[] = [
   },
   {
     match: /名字|你叫什么|你是谁/,
-    replies: [
-      { text: '我是你的桌面小宠物呀！名字还没取呢，要不你给我起一个？', emotion: 'happy' }
-    ]
+    replies: [{ text: '我是你的桌面小宠物呀！名字还没取呢，要不你给我起一个？', emotion: 'happy' }]
   },
   {
     match: /累|困|加班|烦|难受|伤心|难过/,

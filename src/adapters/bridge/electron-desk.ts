@@ -22,7 +22,6 @@ const TAP_THRESHOLD_PX = 8
  * 否则一旦穿透就再也收不到"鼠标移回宠物"的消息，穿透状态会卡死。
  */
 
-
 export interface DeskBridge {
   setIgnoreMouse(ignore: boolean): void
 }

@@ -6,7 +6,13 @@
  */
 
 import { match } from 'ts-pattern'
-import type { BrainChannel, BrainStatus, PetIdentity, ReplyMessage, Unsubscribe } from '../../domain'
+import type {
+  BrainChannel,
+  BrainStatus,
+  PetIdentity,
+  ReplyMessage,
+  Unsubscribe
+} from '../../domain'
 import { IPC } from '../../contracts/ipc'
 import { BrainInboundSchema } from '../../contracts/schemas'
 
@@ -27,15 +33,16 @@ export function toReplyMessage(raw: unknown): ReplyMessage | null {
 
   return match(parsed.data)
     .with({ type: 'chat.delta' }, (m): ReplyMessage => ({ kind: 'chunk', text: m.delta }))
-    .with(
-      { type: 'chat.directive' },
-      (m): ReplyMessage => ({ kind: 'mood', emotion: m.emotion, cue: m.motion })
-    )
+    .with({ type: 'chat.directive' }, (m): ReplyMessage => ({
+      kind: 'mood',
+      emotion: m.emotion,
+      cue: m.motion
+    }))
     .with({ type: 'chat.done' }, (): ReplyMessage => ({ kind: 'done' }))
-    .with(
-      { type: 'chat.error' },
-      (m): ReplyMessage => ({ kind: 'error', reason: m.message || '未知错误' })
-    )
+    .with({ type: 'chat.error' }, (m): ReplyMessage => ({
+      kind: 'error',
+      reason: m.message || '未知错误'
+    }))
     .exhaustive()
 }
 

@@ -6,7 +6,8 @@
  * 渲染进程因此拿不到 Node、拿不到网络，也拿不到任意通道。
  */
 
-import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
+import type { IpcRendererEvent } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import type { AppConfig, DeepPartial } from '../contracts/app-config'
 import type { ModelCatalog } from '../contracts/model-catalog'
 import { IPC, type IpcEvent, type IpcEventPayloads } from '../contracts/ipc'

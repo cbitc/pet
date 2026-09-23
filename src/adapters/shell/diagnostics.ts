@@ -27,9 +27,7 @@ export function dlog(tag: string, ...args: unknown[]): void {
 
 function outDir(): string {
   // 打包态 getAppPath() 指向 app.asar（只读），改用 exe 所在目录
-  const base = app.isPackaged
-    ? path.dirname(process.execPath)
-    : app.getAppPath()
+  const base = app.isPackaged ? path.dirname(process.execPath) : app.getAppPath()
   const label = process.env['PET_DIAG_LABEL']
   return path.join(base, '.diag', ...(label ? [label] : []))
 }
@@ -55,7 +53,10 @@ export function applyDiagSwitches(): void {
   if (!DIAG) return
   const raw = process.env['PET_DIAG_SWITCH']
   if (raw) {
-    for (const s of raw.split(/[;,]/).map((v) => v.trim()).filter(Boolean)) {
+    for (const s of raw
+      .split(/[;,]/)
+      .map((v) => v.trim())
+      .filter(Boolean)) {
       app.commandLine.appendSwitch(s)
       dlog('appendSwitch', s)
     }
@@ -119,7 +120,9 @@ export function diagWindow(win: BrowserWindow): void {
   wc.on('did-finish-load', () => dlog('wc:did-finish-load'))
   wc.on('did-stop-loading', () => dlog('wc:did-stop-loading'))
   wc.on('did-fail-load', (_e, code, desc, url) => dlog('wc:did-fail-load', code, desc, url))
-  wc.on('render-process-gone', (_e, details) => dlog('wc:render-process-gone', JSON.stringify(details)))
+  wc.on('render-process-gone', (_e, details) =>
+    dlog('wc:render-process-gone', JSON.stringify(details))
+  )
   wc.on('unresponsive', () => dlog('wc:unresponsive'))
   wc.on('preload-error', (_e, p, err) => dlog('wc:preload-error', p, String(err)))
 
@@ -180,12 +183,17 @@ export async function runScenario(which: string): Promise<void> {
 
   // 3) 显示后多时间点
   for (const ms of [400, 1200, 2400, 4000]) {
-    await new Promise((r) => setTimeout(r, ms === 400 ? 400 : ms - (ms === 1200 ? 400 : ms === 2400 ? 1200 : 2400)))
+    await new Promise((r) =>
+      setTimeout(r, ms === 400 ? 400 : ms - (ms === 1200 ? 400 : ms === 2400 ? 1200 : 2400))
+    )
     await sceneShot(dir, `${which}-after-${String(ms).padStart(4, '0')}ms.png`)
     // 同时记录页面自身 alpha 作为对照
     try {
       const page = await win.webContents.capturePage()
-      fs.writeFileSync(path.join(dir, `${which}-page-${String(ms).padStart(4, '0')}ms.png`), page.toPNG())
+      fs.writeFileSync(
+        path.join(dir, `${which}-page-${String(ms).padStart(4, '0')}ms.png`),
+        page.toPNG()
+      )
     } catch {
       /* ignore */
     }
@@ -229,9 +237,7 @@ export function runMinimalProbe(): void {
   })
   win.setAlwaysOnTop(true, 'screen-saver')
   dlog('minimal probe window created', JSON.stringify(win.getBounds()))
-  void win.loadURL(
-    `data:text/html;charset=utf-8,${encodeURIComponent(DIAGNOSTIC_PAGES.minimal)}`
-  )
+  void win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(DIAGNOSTIC_PAGES.minimal)}`)
   win.on('show', () => {
     dlog('minimal probe shown')
     scheduleCaptures(win)

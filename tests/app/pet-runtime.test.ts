@@ -12,7 +12,10 @@ describe('宠物运行时：现身', () => {
     expect(h.stage.lastPlacement).toEqual({ x: 0.3, y: 0.4, scale: 0.5 })
     expect(h.chat.spoken).toHaveLength(1)
     expect(h.chat.spoken[0]).toContain('点我')
-    expect(h.brain.identity).toEqual({ sessionId: h.preferences.current.sessionId, persona: h.preferences.current.persona })
+    expect(h.brain.identity).toEqual({
+      sessionId: h.preferences.current.sessionId,
+      persona: h.preferences.current.persona
+    })
   })
 
   it('偏好里的形象不存在时，穿第一件可用形象', async () => {

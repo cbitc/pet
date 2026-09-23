@@ -70,7 +70,12 @@ export type PointerTarget = 'pet' | 'ui' | 'none'
  * 「位移小于阈值算点击」这类指针惯用判定留在适配器里，领域只收到语义结果。
  */
 export type DeskGesture =
-  | { readonly kind: 'hover'; readonly at: ScreenPoint; readonly onPet: boolean; readonly onUi: boolean }
+  | {
+      readonly kind: 'hover'
+      readonly at: ScreenPoint
+      readonly onPet: boolean
+      readonly onUi: boolean
+    }
   | { readonly kind: 'leave' }
   | { readonly kind: 'tap' }
   | { readonly kind: 'dragBegin' }

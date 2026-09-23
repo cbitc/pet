@@ -28,4 +28,3 @@ export const DEFAULT_PREFERENCES: Preferences = {
   persona: DEFAULT_PERSONA,
   sessionId: ''
 }
-

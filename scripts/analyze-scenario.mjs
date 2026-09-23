@@ -61,7 +61,14 @@ function decode(file) {
 }
 
 const scenes = fs.existsSync(DIR)
-  ? [...new Set(fs.readdirSync(DIR).map((f) => /^(.*?)-(bg1|bg2|after-\d+ms)\.png$/.exec(f)?.[1]).filter(Boolean))]
+  ? [
+      ...new Set(
+        fs
+          .readdirSync(DIR)
+          .map((f) => /^(.*?)-(bg1|bg2|after-\d+ms)\.png$/.exec(f)?.[1])
+          .filter(Boolean)
+      )
+    ]
   : []
 
 if (!scenes.length) {
@@ -112,7 +119,9 @@ for (const scene of scenes) {
       else toColor++
     }
     const p = (n) => ((n / N) * 100).toFixed(2) + '%'
-    console.log(`  ${f.replace(`${scene}-`, '').padEnd(18)} 白化=${p(toWhite)}  黑化=${p(toBlack)}  其他变化=${p(toColor)}`)
+    console.log(
+      `  ${f.replace(`${scene}-`, '').padEnd(18)} 白化=${p(toWhite)}  黑化=${p(toBlack)}  其他变化=${p(toColor)}`
+    )
   }
 
   // 页面自身内容占比（对照：页面是否有内容、是否透明）

@@ -101,7 +101,6 @@ async function fetchModel(model) {
 async function main() {
   fs.mkdirSync(ROOT, { recursive: true })
   for (const m of MODELS) {
-    // eslint-disable-next-line no-await-in-loop
     await fetchModel(m)
   }
   console.log('[fetch-models] 全部完成')

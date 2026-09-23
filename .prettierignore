@@ -1,0 +1,11 @@
+# 生成物 / 依赖 / 资产
+node_modules/
+out/
+dist/
+coverage/
+.smoke/
+.diag/
+.tmpx/
+resources/
+package-lock.json
+*.tsbuildinfo

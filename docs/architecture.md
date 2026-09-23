@@ -339,8 +339,8 @@ Pixi 8.15+ 引入 `GCSystem`，默认 `gcActive: true`、`gcMaxUnusedTime: 60s`�
 ```ts
 app.init({
   // ...
-  gcActive: false, // 关闭 Pixi GPU 资源 GC，规避 Live2D 纹理被误收（见 docs/issues/0002-live2d-texture-gc.md）
-});
+  gcActive: false // 关闭 Pixi GPU 资源 GC，规避 Live2D 纹理被误收（见 docs/issues/0002-live2d-texture-gc.md）
+})
 ```
 
 关闭 GC 后，本该由 GC 兜底的释放需要显式完成；本应用只有 Live2D 纹理会跨形象切换累积，
@@ -405,7 +405,7 @@ remote 模式：直接连配置地址
 （`adapters/presentation/chat/dom-chat-surface.ts`）：
 
 ```ts
-const step = Math.max(1, Math.round((buffer.length - shown) / 6)); // 落后越多吐越快
+const step = Math.max(1, Math.round((buffer.length - shown) / 6)) // 落后越多吐越快
 ```
 
 效果：网络抖动被视觉上平滑掉，用户看到的是匀速但会"加速追赶"的打字感。
@@ -631,7 +631,7 @@ src/
 resources/                     core（不入库）/ models（可替换）/ icon.png
 tests/                         领域与运行时测试 + 纯净性守护
 scripts/                       fetch-core / fetch-models / gen-icon / smoke / 诊断系列
-docs/                          文档地图（README）/ domain / architecture / conventions / brain-protocol / issues
+docs/                          文档地图（README）/ domain / architecture / conventions / issues
 ```
 
 ---

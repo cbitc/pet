@@ -8,7 +8,8 @@
  * 随后截图宠物页与设置页，交回 scripts/smoke.mjs 判定。
  */
 
-import { app, BrowserWindow } from 'electron'
+import type { BrowserWindow } from 'electron'
+import { app } from 'electron'
 import fs from 'node:fs'
 import path from 'node:path'
 import { store } from './config-store'
@@ -75,7 +76,10 @@ const SPEAK_SCRIPT = `(() => {
 })()`
 
 /** 启动冒烟流程；返回后由调用方负责最终退出 */
-export function runSmokeCheck(petWin: BrowserWindow, openSettings: () => BrowserWindow | null): void {
+export function runSmokeCheck(
+  petWin: BrowserWindow,
+  openSettings: () => BrowserWindow | null
+): void {
   petWin.once('ready-to-show', () => {
     void (async () => {
       try {

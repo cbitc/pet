@@ -27,14 +27,14 @@ domain/     业务：纯逻辑，只依赖自己与 shared
 shared/     通用原语：零 import 最底层（clamp / 命中判定）
 ```
 
-| 层 | 可以依赖 | 禁止 |
-|---|---|---|
-| `shared/` | 无（零 import） | 依赖任何模块 |
-| `domain/` | `domain/` 内部、`shared/` | electron / pixi / DOM / ws / node / **zod** |
-| `app/` | `domain/`（经端口）、`shared/` | 技术栈、DOM |
-| `adapters/` | `domain/`、`contracts/`、`shared/`、各自技术库 | 被上层反向依赖 |
-| `entries/` | 全部（组装） | 把业务规则写在这里 |
-| `contracts/` | `domain/` 类型与常量、`shared/`、`zod` | 被 `domain/` 依赖 |
+| 层           | 可以依赖                                       | 禁止                                        |
+| ------------ | ---------------------------------------------- | ------------------------------------------- |
+| `shared/`    | 无（零 import）                                | 依赖任何模块                                |
+| `domain/`    | `domain/` 内部、`shared/`                      | electron / pixi / DOM / ws / node / **zod** |
+| `app/`       | `domain/`（经端口）、`shared/`                 | 技术栈、DOM                                 |
+| `adapters/`  | `domain/`、`contracts/`、`shared/`、各自技术库 | 被上层反向依赖                              |
+| `entries/`   | 全部（组装）                                   | 把业务规则写在这里                          |
+| `contracts/` | `domain/` 类型与常量、`shared/`、`zod`         | 被 `domain/` 依赖                           |
 
 - **依赖单向且无环**：`entries → adapters → app → domain → shared`。
   领域绝不反向依赖外层，适配器之间不互相依赖。
@@ -88,43 +88,46 @@ shared/     通用原语：零 import 最底层（clamp / 命中判定）
 
 ## 4. 测试与验收
 
-| 改动面 | 至少跑 |
-|---|---|
-| 任何改动 | `npm run typecheck` |
-| 领域规则 / 解析 / 运行时 | `npm test` |
-| 壳、渲染、窗口、交互 | `npm run smoke`（含透明区白屏回归） |
-| 打包配置 | `npm run build`（必要时 `dist:win`） |
+| 改动面                   | 至少跑                                                              |
+| ------------------------ | ------------------------------------------------------------------- |
+| 任何改动                 | `npm run check`（typecheck + lint + format + docs + test 一次跑完） |
+| 领域规则 / 解析 / 运行时 | `npm test`（覆盖率 `npm run test:coverage`）                        |
+| 壳、渲染、窗口、交互     | `npm run smoke`（含透明区白屏回归）                                 |
+| 打包配置                 | `npm run build`（必要时 `dist:win`）                                |
 
 - 领域规则用例放 `tests/domain/`；边界解析用例放 `tests/contracts/`；
   运行时编排用例放 `tests/app/`（用 `tests/support/fakes.ts` 的端口替身）。
 - 新增/移动通用原语时先套归属判据：**与业务无关 → `shared/`；与宠物有关 → `domain/`**，
   并保持 `purity.test.ts` 继续通过。
+- **工具分工**：`tsc` 管类型，ESLint 管「类型管不到的错」（悬空 Promise、Promise 误用等），
+  Prettier 管格式。两者规则互不重叠：ESLint 不承担排版，Prettier 不做语义检查。
+- **提交门禁**：husky 的 `pre-commit` 用 lint-staged 对暂存文件跑 `eslint --fix` +
+  `prettier --write`；推送到远端由 CI（`.github/workflows/ci.yml`）跑全量校验。
 - **测试是规格**：修 bug 先写失败用例；改行为先改用例再改实现。
 - 端口替身只记录「运行时对它做了什么」，不做真实技术动作。
 
 ## 5. 文档规范
 
-### 5.1 四类文档，各归其位
+### 5.1 文档分类，各归其位
 
-| 类别 | 位置 | 回答的问题 |
-|---|---|---|
-| 全局 | `docs/domain.md` / `architecture.md` / `conventions.md` | 是什么、怎么落地、什么算合格 |
-| 契约 | `docs/brain-protocol.md` | 前后端以什么消息对话 |
-| 过程 | `docs/issues/` | 这件事为什么做、怎么做、结果如何 |
-| 入口 | `README.md` / `docs/README.md` | 先读什么 |
+| 类别 | 位置                                                    | 回答的问题                       |
+| ---- | ------------------------------------------------------- | -------------------------------- |
+| 全局 | `docs/domain.md` / `architecture.md` / `conventions.md` | 是什么、怎么落地、什么算合格     |
+| 过程 | `docs/issues/`                                          | 这件事为什么做、怎么做、结果如何 |
+| 入口 | `README.md` / `docs/README.md`                          | 先读什么                         |
 
 **单一真相源（SSOT）**：同一信息只在一处写，其他位置链接过去。术语以
 [domain.md](domain.md) §2 的通用语言表为准；架构以 [architecture.md](architecture.md) 为准。
 
 ### 5.2 何时更新哪份
 
-| 变化 | 更新 |
-|---|---|
-| 业务规则 / 术语 | `domain.md`（+ `tests/domain/`） |
-| 技术结构 / 依赖 / 脚本 / 环境变量 | `architecture.md` |
-| 写码、测试、文档的「规矩」 | 本文（`conventions.md`） |
-| 跨端协议 | `brain-protocol.md`（协议向后兼容，见其设计原则） |
-| 任何值得记录的变更 | 先开 `docs/issues/`，完成后回写上面的全局文档 |
+| 变化                              | 更新                                                                    |
+| --------------------------------- | ----------------------------------------------------------------------- |
+| 业务规则 / 术语                   | `domain.md`（+ `tests/domain/`）                                        |
+| 技术结构 / 依赖 / 脚本 / 环境变量 | `architecture.md`                                                       |
+| 写码、测试、文档的「规矩」        | 本文（`conventions.md`）                                                |
+| 大脑消息格式                      | `contracts/wire-protocol.ts`（类型即契约；设计见 `architecture.md` §8） |
+| 任何值得记录的变更                | 先开 `docs/issues/`，完成后回写上面的全局文档                           |
 
 **代码与文档同级维护**：代码改动使文档失真时，必须在同一次改动里修正文档，不留「以后补」。
 
@@ -148,15 +151,18 @@ shared/     通用原语：零 import 最底层（clamp / 命中判定）
 
 ## 7. 常用命令
 
-| 命令 | 用途 |
-|---|---|
-| `npm run dev` | 开发（renderer HMR） |
-| `npm run typecheck` | 双工程类型检查（node 侧 / web 侧） |
-| `npm test` | 领域、边界解析、运行时测试 |
-| `npm run docs:check` | 文档相对链接自检（死链即失败） |
-| `npm run smoke` | 端到端冒烟 + 透明窗白屏回归（截图存 `.smoke/`） |
-| `npm run fetch:assets` | 下载 Cubism Core 与示例模型（可重复执行） |
-| `npm run build` / `dist:win` | 构建 / 打包 Windows 安装包 |
+| 命令                              | 用途                                                         |
+| --------------------------------- | ------------------------------------------------------------ |
+| `npm run dev`                     | 开发（renderer HMR）                                         |
+| `npm run typecheck`               | 双工程类型检查（node 侧 / web 侧，严格模式）                 |
+| `npm run lint` / `lint:fix`       | ESLint（类型感知；悬空 Promise / Promise 误用 / 类型导入）   |
+| `npm run format` / `format:check` | Prettier 写入 / 校验                                         |
+| `npm test` / `test:coverage`      | 单元测试 / 覆盖率报告（text + html）                         |
+| `npm run docs:check`              | 文档相对链接自检（死链即失败）                               |
+| `npm run check`                   | 一次跑完 typecheck + lint + format:check + docs:check + test |
+| `npm run smoke`                   | 端到端冒烟 + 透明窗白屏回归（截图存 `.smoke/`）              |
+| `npm run fetch:assets`            | 下载 Cubism Core 与示例模型（可重复执行）                    |
+| `npm run build` / `dist:win`      | 构建 / 打包 Windows 安装包                                   |
 
 > 环境变量与排障开关（`PET_DIAG`、`PET_SMOKE`、`PET_RENDER_QUERY` 等）见
 > [architecture.md](architecture.md) §14。

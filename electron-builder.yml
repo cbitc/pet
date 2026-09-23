@@ -6,7 +6,7 @@ directories:
 files:
   - out/**
   - package.json
-  - "!**/*.map"
+  - '!**/*.map'
 extraResources:
   # Cubism Core 与模型资产不打进 asar，运行时经 pet:// 协议读取
   - from: resources/core

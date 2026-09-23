@@ -21,15 +21,15 @@ GC 的 `texture.source.touched = ...` 只对旧的 `TextureGCSystem` 有效，�
 
 ## 根因链（`文件:行号` 级）
 
-| # | 事实 | 位置 |
-|---|---|---|
-| 1 | Pixi GC 默认：启用、未使用阈值 60s、扫描周期 30s | `pixi.js/.../shared/GCSystem.js` `defaultOptions`（`gcActive: true` / `gcMaxUnusedTime: 6e4` / `gcFrequency: 3e4`） |
-| 2 | 只有 Pixi 自己绑纹理时才刷新 `_gcLastUsed` | `pixi.js/.../gl/texture/GlTextureSystem.js` 的 `bindSource()` / `getGlSource()`：`source._gcLastUsed = renderer.gc.now` |
-| 3 | GC 判定：`now - _gcLastUsed >= maxUnusedTime && autoGarbageCollect` → `resource.unload()` | `pixi.js/.../shared/GCSystem.js` 的 `runOnHash()` |
-| 4 | `unload` 最终删除 GL 纹理 | `GlTextureSystem` 的 `onSourceUnload()` → `gl.deleteTexture(...)`；注册方 `GCManagedHash` 监听 `unload` |
-| 5 | 模型贴图是 `ImageSource`，`autoGarbageCollect = true` | `pixi.js/.../sources/ImageSource.js` |
-| 6 | Live2D 分支**只在首次**取纹理，之后走缓存 + 直接绑定 | `cubism4.es.js` `_onRenderCallback()`：`cachedGlTextures[i] ?? extractWebGLTexture(...)`，随后 `internalModel.bindTexture(i, glTexture)` |
-| 7 | 库的“保活”写的是已废弃字段 | `cubism4.es.js`：`texture.source.touched = renderer.textureGC.count`；`TextureSource` 已无 `touched`，GC 只读 `_gcLastUsed` |
+| #   | 事实                                                                                      | 位置                                                                                                                                     |
+| --- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Pixi GC 默认：启用、未使用阈值 60s、扫描周期 30s                                          | `pixi.js/.../shared/GCSystem.js` `defaultOptions`（`gcActive: true` / `gcMaxUnusedTime: 6e4` / `gcFrequency: 3e4`）                      |
+| 2   | 只有 Pixi 自己绑纹理时才刷新 `_gcLastUsed`                                                | `pixi.js/.../gl/texture/GlTextureSystem.js` 的 `bindSource()` / `getGlSource()`：`source._gcLastUsed = renderer.gc.now`                  |
+| 3   | GC 判定：`now - _gcLastUsed >= maxUnusedTime && autoGarbageCollect` → `resource.unload()` | `pixi.js/.../shared/GCSystem.js` 的 `runOnHash()`                                                                                        |
+| 4   | `unload` 最终删除 GL 纹理                                                                 | `GlTextureSystem` 的 `onSourceUnload()` → `gl.deleteTexture(...)`；注册方 `GCManagedHash` 监听 `unload`                                  |
+| 5   | 模型贴图是 `ImageSource`，`autoGarbageCollect = true`                                     | `pixi.js/.../sources/ImageSource.js`                                                                                                     |
+| 6   | Live2D 分支**只在首次**取纹理，之后走缓存 + 直接绑定                                      | `cubism4.es.js` `_onRenderCallback()`：`cachedGlTextures[i] ?? extractWebGLTexture(...)`，随后 `internalModel.bindTexture(i, glTexture)` |
+| 7   | 库的“保活”写的是已废弃字段                                                                | `cubism4.es.js`：`texture.source.touched = renderer.textureGC.count`；`TextureSource` 已无 `touched`，GC 只读 `_gcLastUsed`              |
 
 时间线（模型加载时刻记 0）：
 
@@ -50,7 +50,7 @@ t≈60s   GC 第二次扫描：距上次使用 60s，不再 < 60s → source.unl
 `src/adapters/presentation/stage/pixi-stage.ts` 的 `app.init`：
 
 ```ts
-gcActive: false   // 关闭 Pixi GPU 资源 GC（详见本节文档）
+gcActive: false // 关闭 Pixi GPU 资源 GC（详见本节文档）
 ```
 
 关闭 GC 后，凡是本应由 GC 兜底的资源都需要显式释放。本应用只有 Live2D 纹理会跨形象

@@ -1,7 +1,7 @@
 import { app, ipcMain, dialog } from 'electron'
 import fs from 'node:fs'
 import { IPC } from '../contracts/ipc'
-import { DeepPartial } from '../contracts/app-config'
+import type { DeepPartial } from '../contracts/app-config'
 import { store } from '../adapters/shell/config-store'
 import { registerPetProtocol, registerPetScheme } from '../adapters/shell/asset-protocol'
 import { coreExists, listModels } from '../adapters/shell/asset-catalog'
@@ -44,7 +44,7 @@ let tray: PetTray | null = null
 const isFromPet = (sender: Electron.WebContents): boolean =>
   !!petWin && !petWin.isDestroyed() && sender.id === petWin.webContents.id
 
-app.whenReady().then(() => {
+void app.whenReady().then(() => {
   diagAppStartup()
   store.init()
   registerPetProtocol()

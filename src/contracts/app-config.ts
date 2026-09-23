@@ -35,9 +35,7 @@ export type PetPose = AppConfig['pose']
 
 export const DEFAULT_CONFIG: AppConfig = AppConfigSchema.parse({})
 
-export type DeepPartial<T> = T extends object
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : T
+export type DeepPartial<T> = T extends object ? { [K in keyof T]?: DeepPartial<T[K]> } : T
 
 /** 把（可能来自磁盘/IPC 的）配置对象收拢成合法配置 */
 export const sanitizeConfig = (raw: unknown): AppConfig => AppConfigSchema.parse(raw)

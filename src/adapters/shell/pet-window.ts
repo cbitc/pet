@@ -39,9 +39,7 @@ export function createPetWindow(): BrowserWindow {
   const renderQuery = process.env['PET_RENDER_QUERY']
 
   if (stage === 'blank' || stage === 'dom') {
-    void win.loadURL(
-      `data:text/html;charset=utf-8,${encodeURIComponent(DIAGNOSTIC_PAGES[stage])}`
-    )
+    void win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(DIAGNOSTIC_PAGES[stage])}`)
     return win
   }
 

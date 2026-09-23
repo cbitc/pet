@@ -9,7 +9,15 @@
 
 import 'pixi.js/unsafe-eval'
 import { Application, type Container } from 'pixi.js'
-import type { Appearance, Emotion, PetStage, Pose, Rect, ScreenPoint, WearResult } from '../../../domain'
+import type {
+  Appearance,
+  Emotion,
+  PetStage,
+  Pose,
+  Rect,
+  ScreenPoint,
+  WearResult
+} from '../../../domain'
 import { Live2DBody } from './live2d-body'
 import { PlaceholderBody } from './placeholder-body'
 import type { StageBody } from './stage-body'

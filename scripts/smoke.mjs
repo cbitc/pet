@@ -21,7 +21,13 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const shot = (name) =>
   spawnSync(
     'powershell',
-    ['-ExecutionPolicy', 'Bypass', '-File', path.resolve('scripts', 'gdi-shot.ps1'), path.resolve(OUT, name)],
+    [
+      '-ExecutionPolicy',
+      'Bypass',
+      '-File',
+      path.resolve('scripts', 'gdi-shot.ps1'),
+      path.resolve(OUT, name)
+    ],
     { stdio: 'ignore' }
   )
 
@@ -139,7 +145,9 @@ if (fs.existsSync(pet)) {
   const pct = (content / (d.w * d.h)) * 100
   const pass = pct > 0.2
   if (!pass) ok = false
-  console.log(`  页面内容占比 = ${pct.toFixed(2)}%（含宠物/气泡，>0.2% 视为通过）→ ${pass ? 'PASS' : 'FAIL'}`)
+  console.log(
+    `  页面内容占比 = ${pct.toFixed(2)}%（含宠物/气泡，>0.2% 视为通过）→ ${pass ? 'PASS' : 'FAIL'}`
+  )
 } else {
   ok = false
   console.log('  ✗ 未生成 .smoke/pet.png（应用未完成冒烟流程）')

@@ -155,10 +155,7 @@ export class Pet {
 
   /** 回到默认位置 */
   resetPose(): DomainEvent[] {
-    return [
-      ...this.moveTo(DEFAULT_POSE, 'reset'),
-      { type: 'PetSettled', pose: this.currentPose }
-    ]
+    return [...this.moveTo(DEFAULT_POSE, 'reset'), { type: 'PetSettled', pose: this.currentPose }]
   }
 
   /** 换一身形象（null 表示没有可用形象，只能以降级形态出现） */

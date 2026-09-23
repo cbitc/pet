@@ -34,22 +34,22 @@
 
 ## 4. 方案
 
-| 步骤 | 做法 | 主要落点 |
-|---|---|---|
-| ① 原语收敛 | 新增几何/数值模块，`clamp` / `rectContains` 各留一份 | `domain/geometry.ts`（后被 0004 提升为 `shared/`） |
-| ② 边界解析 | 引入 **zod**，`unknown → 类型` 全部改为 schema；默认值与坏值回退写在 schema 上 | 新增 `contracts/schemas.ts`；改写 `contracts/app-config.ts`、`adapters/bridge/*`、`adapters/shell/asset-catalog.ts` |
-| ③ 穷尽分支 | 引入 **ts-pattern**，`match(...).exhaustive()` 替换手写 switch | `app/pet-runtime.ts`、`adapters/bridge/ipc-brain-channel.ts` |
-| ④ 类型去重 | `IPC.brainStatus` 用 `BrainStatus`；`EmotionName` / `EMOTIONS` 收敛到领域 | `contracts/ipc.ts`、`contracts/wire-protocol.ts`、`adapters/brain/brain-link.ts` |
-| ⑤ 窗口/诊断收敛 | 安全三件套 + 透明层参数抽预设；诊断 HTML 抽常量表 | 新增 `adapters/shell/window-presets.ts`、`diagnostic-pages.ts` |
+| 步骤            | 做法                                                                           | 主要落点                                                                                                            |
+| --------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| ① 原语收敛      | 新增几何/数值模块，`clamp` / `rectContains` 各留一份                           | `domain/geometry.ts`（后被 0004 提升为 `shared/`）                                                                  |
+| ② 边界解析      | 引入 **zod**，`unknown → 类型` 全部改为 schema；默认值与坏值回退写在 schema 上 | 新增 `contracts/schemas.ts`；改写 `contracts/app-config.ts`、`adapters/bridge/*`、`adapters/shell/asset-catalog.ts` |
+| ③ 穷尽分支      | 引入 **ts-pattern**，`match(...).exhaustive()` 替换手写 switch                 | `app/pet-runtime.ts`、`adapters/bridge/ipc-brain-channel.ts`                                                        |
+| ④ 类型去重      | `IPC.brainStatus` 用 `BrainStatus`；`EmotionName` / `EMOTIONS` 收敛到领域      | `contracts/ipc.ts`、`contracts/wire-protocol.ts`、`adapters/brain/brain-link.ts`                                    |
+| ⑤ 窗口/诊断收敛 | 安全三件套 + 透明层参数抽预设；诊断 HTML 抽常量表                              | 新增 `adapters/shell/window-presets.ts`、`diagnostic-pages.ts`                                                      |
 
 ## 5. 决策记录
 
-| 决策 | 理由 | 备选（未采用） |
-|---|---|---|
-| zod 只放 `contracts/` 与 `adapters/`，`domain/` 不引入 | 保住「领域零技术依赖」的卖点与可读性；解析本就属于边界 | domain 内直接用 zod（依赖变重、纯度测试虽未禁止但不划算） |
-| 用 ts-pattern 代替「类型映射表」 | 类型收窄更顺、无需 `as never`，`.exhaustive()` 直接给穷尽检查 | 零依赖的 `{ [E in Event['type']]: handler }` 映射表（可行但啰嗦） |
-| 解析函数移出 domain，集中到 `contracts/schemas.ts` | 单一真相源；domain 只留类型与纯规则 | 保留 `defineAppearance` / `poseFrom` 在 domain 内净化 |
-| 默认值由 schema 产出（`DEFAULT_CONFIG = AppConfigSchema.parse({})`） | 默认值与校验规则同处，改一处即可 | 保留手写 `sanitizeConfig` 逐字段 clamp |
+| 决策                                                                 | 理由                                                          | 备选（未采用）                                                    |
+| -------------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------- |
+| zod 只放 `contracts/` 与 `adapters/`，`domain/` 不引入               | 保住「领域零技术依赖」的卖点与可读性；解析本就属于边界        | domain 内直接用 zod（依赖变重、纯度测试虽未禁止但不划算）         |
+| 用 ts-pattern 代替「类型映射表」                                     | 类型收窄更顺、无需 `as never`，`.exhaustive()` 直接给穷尽检查 | 零依赖的 `{ [E in Event['type']]: handler }` 映射表（可行但啰嗦） |
+| 解析函数移出 domain，集中到 `contracts/schemas.ts`                   | 单一真相源；domain 只留类型与纯规则                           | 保留 `defineAppearance` / `poseFrom` 在 domain 内净化             |
+| 默认值由 schema 产出（`DEFAULT_CONFIG = AppConfigSchema.parse({})`） | 默认值与校验规则同处，改一处即可                              | 保留手写 `sanitizeConfig` 逐字段 clamp                            |
 
 ## 6. 执行与结果
 
